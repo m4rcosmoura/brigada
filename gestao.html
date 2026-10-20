@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#15181d">
+<title>Gestão Brigada</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 2l8 3v6c0 5-3.5 9.5-8 11-4.5-1.5-8-6-8-11V5z' fill='%23d6262f'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="estilo.css">
+<style>
+  /* Específico da gestão (PC) */
+  body { font-size: 15px; }
+  .shell { display: flex; min-height: calc(100vh - 67px); }
+  aside.lateral { width: 236px; flex: none; background: var(--ink2); padding: 18px 12px; position: sticky; top: 67px; height: calc(100vh - 67px); overflow: auto; }
+  aside.lateral a { display: flex; align-items: center; gap: 12px; color: #c9ced6; text-decoration: none; padding: 11px 12px; border-radius: 10px; font-weight: 500; margin-bottom: 4px; }
+  aside.lateral a:hover { background: var(--ink3); color: #fff; }
+  aside.lateral a.ativo { background: var(--red); color: #fff; }
+  aside.lateral .sep { color: #6b7280; font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; padding: 16px 12px 6px; }
+  aside.lateral .logo-lat { display: block; width: 100%; background: #fff; border-radius: 10px; padding: 8px; margin-top: 24px; }
+  .conteudo { flex: 1; min-width: 0; }
+  main { max-width: 1240px; padding: 24px 28px 48px; }
+  .grade-painel { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+  .grade-painel > .card { margin: 0; }
+  .hist { display: flex; align-items: flex-end; gap: 10px; height: 130px; padding-top: 8px; }
+  .hist div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; font-size: .75rem; color: var(--muted); gap: 4px; }
+  .hist i { display: block; width: 100%; max-width: 44px; background: var(--red); border-radius: 6px 6px 2px 2px; min-height: 3px; }
+  .hist div.atual i { background: var(--green); }
+  .hist b { color: var(--txt); font-size: .8rem; }
+  .filtros { display: grid; grid-template-columns: 2fr repeat(4, 1fr); gap: 10px; }
+  .filtros input, .filtros select, .compacto input, .compacto select, td select { min-height: 42px; padding: 8px 12px; }
+  .tbl-alta { max-height: 62vh; }
+  tr.clic { cursor: pointer; } tr.clic:hover td { background: #fafbfc; }
+  .acoes { position: sticky; bottom: 0; background: var(--ink); color: #fff; border-radius: 14px; padding: 12px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; box-shadow: 0 -4px 20px rgba(0,0,0,.15); }
+  .acoes select, .acoes input { width: auto; min-width: 240px; min-height: 42px; padding: 8px 12px; }
+  .duplas { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+  .duplas .card { margin: 0; display: flex; flex-direction: column; gap: 10px; }
+  .dupla-num { width: 44px; height: 44px; border-radius: 12px; background: var(--ink); color: #fff; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; font-size: 1.1rem; flex: none; }
+  .pilulas { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pilula { display: inline-flex; align-items: center; gap: 6px; background: #f1f3f6; border: 1px solid var(--line); border-radius: 99px; padding: 4px 6px 4px 12px; font-size: .84rem; font-weight: 500; }
+  .pilula.pessoa { background: #fff; }
+  .pilula button { border: 0; background: transparent; color: var(--muted); cursor: pointer; width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; padding: 0; }
+  .pilula button:hover { background: var(--red-l); color: var(--red); }
+  .pilula button .ic { width: 14px; height: 14px; }
+  .rotulo { font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
+  .compacto { display: flex; gap: 8px; }
+  .compacto select { flex: 1; }
+  .login { max-width: 400px; margin: 9vh auto; }
+  .login .chip { width: 60px; height: 60px; border-radius: 16px; margin-bottom: 12px; }
+  .login .chip .ic { width: 30px; height: 30px; }
+  .detalhe-itens { margin: 6px 0 0; padding-left: 18px; font-size: .85rem; }
+  .detalhe-itens .nc { color: var(--red); font-weight: 600; }
+  .abas { display: flex; gap: 6px; margin-bottom: 14px; }
+  .abas a { padding: 9px 16px; border-radius: 10px; background: #fff; border: 1px solid var(--line); color: var(--txt); text-decoration: none; font-weight: 600; }
+  .abas a.ativo { background: var(--ink); color: #fff; border-color: var(--ink); }
+  @media (max-width: 900px) {
+    aside.lateral { display: none; }
+    main { padding: 16px; }
+    .grade-painel { grid-template-columns: 1fr; }
+    .kpis { grid-template-columns: 1fr 1fr; }
+    .filtros { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<header class="topo">
+  <a class="marca" href="#/">
+    <svg class="escudo" viewBox="0 0 24 24"><path d="M12 2l8 3v6c0 5-3.5 9.5-8 11-4.5-1.5-8-6-8-11V5z" fill="#d6262f"/><path d="M12.2 7.2c1.6 1.9 3.1 3.2 3.1 5.5a3.3 3.3 0 0 1-6.6 0c0-1.3.6-2.2 1.4-2.9.1 1.1.7 1.7 1.3 1.7 0-1.7-.2-2.8.8-4.3z" fill="#fff"/></svg>
+    <span style="min-width:0"><b>Gestão da Brigada</b><small>Dois Marcos Sementes · checklist de equipamentos</small></span>
+  </a>
+  <button class="ibtn" id="btn-sync" onclick="sincronizar(true)" aria-label="Atualizar dados"></button>
+  <button class="ibtn" id="btn-sair" onclick="sairGestao()" hidden></button>
+</header>
+<div class="shell">
+  <aside class="lateral" id="lateral" hidden></aside>
+  <div class="conteudo">
+    <div id="banner"></div>
+    <main id="app"><div class="carregando">Carregando…</div></main>
+  </div>
+</div>
+
+<script src="dados-iniciais.js"></script>
+<script src="comum.js"></script>
+<script>
+/* =================== GESTÃO (PC) =================== */
+const ROTAS = { '': telaPainel, 'setores': telaSetores, 'duplas': telaDuplas, 'equipamentos': telaEquipamentos, 'historico': telaHistorico, 'etiquetas': telaEtiquetas, 'config': telaConfig };
+const MENU = [
+  ['', 'painel', 'Painel'], ['setores', 'pin', 'Setores'], ['duplas', 'equipe', 'Duplas e brigadistas'], ['equipamentos', 'caixa', 'Equipamentos'], ['historico', 'historico', 'Histórico'],
+  null, ['etiquetas', 'qr', 'Etiquetas QR'], ['config', 'admin', 'Configuração'],
+];
+ICONES.pin = '<path d="M12 21s-7-6.3-7-11.5a7 7 0 0 1 14 0C19 14.7 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>';
+ICONES.mais = '<path d="M12 5v14M5 12h14"/>';
+const LOGO = '<img class="logo-lat" src="logo.png" alt="Dois Marcos Sementes" onerror="this.hidden=true">';
+const pinGestao = () => { try { return sessionStorage.getItem(LS.pin) || MEM.pin || ''; } catch (e) { return MEM.pin || ''; } };
+function guardarPin(p) { MEM.pin = p; try { p ? sessionStorage.setItem(LS.pin, p) : sessionStorage.removeItem(LS.pin); } catch (e) {} }
+
+function rota() {
+  const partes = location.hash.replace(/^#\/?/, '').split('/');
+  const nome = ROTAS[partes[0]] ? partes[0] : '';
+  const logado = !!pinGestao();
+  document.getElementById('lateral').hidden = !logado;
+  document.getElementById('btn-sair').hidden = !logado;
+  if (!logado) return telaLogin();
+  document.getElementById('lateral').innerHTML = MENU.map(m => m
+    ? `<a href="#/${m[0]}" class="${m[0] === nome ? 'ativo' : ''}">${ico(m[1])}${m[2]}</a>`
+    : '<div class="sep">Ferramentas</div>').join('') + LOGO;
+  const y = window.scrollY, mesma = rota.ultima === nome;
+  rota.ultima = nome;
+  ROTAS[nome](decodeURIComponent(partes.slice(1).join('/')));
+  window.scrollTo(0, mesma ? y : 0);
+}
+const render = html => { document.getElementById('app').innerHTML = html; };
+const recarregarTela = () => rota();
+
+async function sincronizar(manual) {
+  const b = document.getElementById('btn-sync');
+  b.disabled = true;
+  TOKENS = null;
+  await carregar();
+  b.disabled = false;
+  atualizarBanner();
+  rota();
+  if (manual) toast(S.offline ? 'Sem conexão com o banco de dados' : 'Dados atualizados');
+}
+
+/* Executa uma alteração de cadastro e redesenha a tela */
+async function alterar(acao, corpo, aplicar, msg) {
+  try { await alterarCadastro(acao, corpo, pinGestao(), aplicar); if (msg) toast(msg); }
+  catch (e) { toast(e.message === 'Failed to fetch' ? 'Sem conexão com o banco de dados' : e.message); }
+  recarregarTela();
+}
+const selDupla = (atual, onchange, extra = '') => `<select onchange="${onchange}" ${extra}><option value="">— Sem dupla —</option>${duplas().map(d => `<option value="${d}" ${String(atual) === d ? 'selected' : ''}>Dupla ${d} · ${esc(nomesDupla(d))}</option>`).join('')}</select>`;
+const situacao = x => !x.total ? '<span class="tag cinza">Sem equipamentos</span>' : x.pct === 100 ? (x.nc ? '<span class="tag nc">Com problema</span>' : '<span class="tag ok">Concluído</span>')
+  : x.feitos ? '<span class="tag pend">Em andamento</span>' : '<span class="tag nc">Não iniciado</span>';
+const qtdTipos = eqs => categorias().map(c => [c, eqs.filter(e => e.Categoria === c).length]).filter(x => x[1]).map(([c, n]) => `${n} ${c.toLowerCase()}${n > 1 ? 's' : ''}`).join(' · ') || '—';
+
+/* ---------- Login por PIN ---------- */
+function telaLogin() {
+  render(`
+    <div class="card login">
+      <span class="chip vermelho">${ico('cadeado')}</span>
+      <h2 style="margin:0">Acesso da coordenação</h2>
+      <p class="muted">Digite o PIN de administrador para ver o painel e os controles.</p>
+      <form onsubmit="event.preventDefault();entrar()">
+        <input id="pin" type="password" inputmode="numeric" placeholder="PIN" autocomplete="current-password" autofocus>
+        <button class="btn" style="margin-top:12px" id="btn-entrar">Entrar</button>
+      </form>
+      ${DEMO ? `<p class="muted" style="margin:0">Modo demonstração: PIN <b>${esc(CONFIG.PIN_DEMO)}</b></p>` : ''}
+      <p class="muted" style="margin-bottom:0">Brigadista? Use o app do celular: <a href="${esc(urlApp())}">${esc(urlApp())}</a></p>
+    </div>`);
+}
+async function entrar() {
+  const pin = document.getElementById('pin').value.trim();
+  if (!pin) return;
+  const b = document.getElementById('btn-entrar'); b.disabled = true; b.textContent = 'Verificando…';
+  try {
+    if (DEMO) { if (pin !== CONFIG.PIN_DEMO) throw new Error('PIN incorreto'); }
+    else await api({ acao: 'pin', pin });
+    guardarPin(pin);
+    rota();
+  } catch (e) {
+    toast(e.message === 'Failed to fetch' ? 'Sem conexão com o banco de dados' : e.message);
+    b.disabled = false; b.textContent = 'Entrar';
+  }
+}
+function sairGestao() { guardarPin(''); rota(); }
+
+/* ---------- Painel ---------- */
+let painelMes = null, painelCat = '';
+function telaPainel() {
+  const mes = painelMes || mesAtual();
+  const eqs = equipamentos().filter(e => !painelCat || e.Categoria === painelCat);
+  const r = resumo(eqs, mes);
+  const cats = categorias();
+  const ncs = S.registros.filter(x => mesReg(x) === mes && statusEq(x.Codigo, mes).reg === x && x.Resultado === 'NC')
+    .filter(x => !painelCat || x.Categoria === painelCat).sort((a, b) => b.DataHora.localeCompare(a.DataHora));
+  const hist = [5, 4, 3, 2, 1, 0].map(k => { const m = mesAnterior(mes, k); return { m, ...resumo(eqs, m) }; });
+  const porDupla = duplas().map(d => ({ d, ...resumo(eqs.filter(e => duplaDe(e) === d), mes) }));
+  const setoresSem = nomesSetores().filter(n => !(setorPorNome(n) || {}).Dupla);
+  const pctDe = v => r.total ? (v / r.total * 100).toFixed(1).replace('.', ',') + '%' : '0%';
+  render(`
+    <div class="titulo-pag linha" style="justify-content:space-between">
+      <div><h2>Painel</h2><div class="muted">Visão geral do checklist da brigada</div></div>
+      <div class="linha nao-imprimir" style="flex:1;max-width:480px;min-width:260px">
+        ${selMes(mes, "painelMes=this.value;telaPainel()")}
+        <select class="cresce" onchange="painelCat=this.value;telaPainel()"><option value="">Todos os equipamentos</option>${cats.map(c => `<option ${c === painelCat ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select>
+      </div>
+    </div>
+    <div class="kpis">
+      <div class="kpi"><span class="chip azul">${ico('caixa')}</span><div><span>Equipamentos</span><b>${r.total}</b><small>${nomeMes(mes)}</small></div></div>
+      <div class="kpi"><span class="chip verde">${ico('ok')}</span><div><span>OK</span><b>${r.ok}</b><small>${pctDe(r.ok)}</small></div></div>
+      <div class="kpi"><span class="chip vermelho">${ico('alerta')}</span><div><span>Com problema</span><b>${r.nc}</b><small>${pctDe(r.nc)}</small></div></div>
+      <div class="kpi"><span class="chip ambar">${ico('relogio')}</span><div><span>Pendentes</span><b>${r.pend}</b><small>${pctDe(r.pend)}</small></div></div>
+    </div>
+    <div class="grade-painel">
+      <div class="card">
+        <h3>Status do mês</h3>
+        <div class="donut-wrap">
+          ${donut([{ v: r.ok, cor: COR.ok }, { v: r.nc, cor: COR.nc }, { v: r.pend, cor: COR.pend }], r.pct + '%', 'realizado', 160)}
+          <ul class="legenda">
+            <li><i style="background:${COR.ok}"></i>OK<b>${r.ok}</b></li>
+            <li><i style="background:${COR.nc}"></i>Com problema<b>${r.nc}</b></li>
+            <li><i style="background:${COR.pend}"></i>Pendente<b>${r.pend}</b></li>
+          </ul>
+        </div>
+        ${!painelCat ? cats.map(c => { const rc = resumo(equipamentos().filter(e => e.Categoria === c), mes);
+          return `<div style="margin-top:14px"><div class="linha" style="justify-content:space-between;margin-bottom:6px"><span style="font-weight:600">${esc(c)}</span><span class="muted">${rc.feitos}/${rc.total} · ${rc.pct}%</span></div><div class="barra"><i style="width:${rc.pct}%"></i></div></div>`; }).join('') : ''}
+      </div>
+      <div class="card">
+        <h3>Últimos 6 meses — % realizado</h3>
+        <div class="hist">${hist.map((h, i) => `<div class="${i === 5 ? 'atual' : ''}"><b>${h.pct}%</b><i style="height:${Math.max(h.pct, 1)}%"></i>${MESES[+h.m.split('-')[1] - 1].slice(0, 3)}</div>`).join('')}</div>
+        <h3 style="margin-top:20px">Problemas em aberto (${ncs.length})</h3>
+        ${ncs.length ? `<ul class="lista">${ncs.slice(0, 5).map(x => `<li><div class="lin"><span class="chip vermelho">${ico('alerta')}</span><span class="info"><b>${esc(x.Codigo)} · ${esc(x.Local)}</b>
+          <small>${esc(x.ItensNC)}</small><small>“${esc(x.Observacao)}” — ${esc(primeiroNome(x.Brigadista))}, ${fmtData(x.DataHora)}</small></span></div></li>`).join('')}</ul>
+          ${ncs.length > 5 ? `<a href="#/historico" onclick="histF.res='NC';histF.mes='${mes}'">Ver todos os ${ncs.length} →</a>` : ''}` : '<p class="muted">Nenhum problema registrado no mês.</p>'}
+      </div>
+    </div>
+    <div class="card">
+      <div class="linha" style="justify-content:space-between;margin-bottom:8px"><h3 style="margin:0">Andamento por dupla</h3><a href="#/duplas">Gerenciar duplas →</a></div>
+      <div class="tbl-scroll"><table>
+        <tr><th>Dupla</th><th>Brigadistas</th><th>Setores</th><th class="num">Equip.</th><th class="num">Feitos</th><th class="num">Probl.</th><th style="min-width:120px">Andamento</th><th>Situação</th></tr>
+        ${porDupla.sort((a, b) => a.pct - b.pct).map(x => `<tr><td><b>${esc(x.d)}</b></td><td>${esc(nomesDupla(x.d))}</td><td class="muted" style="max-width:280px">${esc(setoresDaDupla(x.d).join(', ') || '—')}</td><td class="num">${x.total}</td><td class="num">${x.feitos}</td><td class="num">${x.nc || ''}</td>
+          <td><div class="barra"><i style="width:${x.pct}%"></i></div><small class="muted">${x.pct}%</small></td><td>${situacao(x)}</td></tr>`).join('')}
+      </table></div>
+      ${setoresSem.length ? `<p class="aviso">${setoresSem.length} setor(es) sem dupla responsável (${equipamentos().filter(e => !duplaDe(e)).length} equipamentos). <a href="#/setores" onclick="setF.dupla='sem'">Definir agora →</a></p>` : ''}
+    </div>
+    <div class="linha nao-imprimir">
+      <button class="btn sec peq" onclick="exportarCSV('${mes}')">${ico('baixar')} Exportar CSV do mês</button>
+      <button class="btn sec peq" onclick="window.print()">${ico('imprimir')} Imprimir painel</button>
+      <span class="muted">Atualizado: ${S.atualizadoEm ? fmtData(S.atualizadoEm) : '—'}</span>
+    </div>`);
+}
+function selMes(mes, onchange, todos) {
+  const opcoes = Array.from({ length: 13 }, (_, k) => mesAnterior(mesAtual(), k));
+  return `<select class="cresce" onchange="${onchange}">${todos ? `<option value="" ${!mes ? 'selected' : ''}>Todos os meses</option>` : ''}${opcoes.map(m => `<option value="${m}" ${m === mes ? 'selected' : ''}>${nomeMes(m)}</option>`).join('')}</select>`;
+}
+function exportarCSV(mes, lista) {
+  const cols = ['DataHora', 'Codigo', 'Categoria', 'Tipo', 'Setor', 'Local', 'Dupla', 'Brigadista', 'Resultado', 'ItensNC', 'Observacao'];
+  lista = lista || S.registros.filter(r => mesReg(r) === mes);
+  const linhas = [cols.join(';')].concat(lista.slice().sort((a, b) => a.DataHora.localeCompare(b.DataHora))
+    .map(r => cols.map(c => '"' + String(c === 'DataHora' ? new Date(r[c]).toLocaleString('pt-BR') : r[c] ?? '').replace(/"/g, '""') + '"').join(';')));
+  const blob = new Blob(['\ufeff' + linhas.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `checklist-brigada-${mes || 'todos'}.csv`; a.click();
+}
+
+/* ---------- Setores: dupla responsável por setor ---------- */
+let setF = { q: '', dupla: '' }, setSel = new Set(), duplaAlvo = '';
+function telaSetores() {
+  const mes = mesAtual(), q = setF.q.toLowerCase();
+  const linhas = nomesSetores().map(nome => {
+    const eqs = equipamentos().filter(e => setorDe(e) === nome);
+    return { nome, eqs, dupla: String((setorPorNome(nome) || {}).Dupla || ''), ...resumo(eqs, mes) };
+  }).filter(x => (!q || x.nome.toLowerCase().includes(q))
+    && (!setF.dupla || (setF.dupla === 'sem' ? !x.dupla : x.dupla === setF.dupla)));
+  const semDupla = nomesSetores().filter(n => !(setorPorNome(n) || {}).Dupla).length;
+  const todos = linhas.length && linhas.every(x => setSel.has(x.nome));
+  render(`
+    <div class="titulo-pag"><h2>Setores</h2><div class="muted">O setor é a <b>Localização</b> do equipamento. Cada setor tem uma dupla, que faz o checklist de <b>todos</b> os equipamentos daquela localização. Trocou a dupla aqui, todos os equipamentos do setor mudam junto.</div></div>
+    <div class="kpis" style="grid-template-columns:repeat(3,1fr)">
+      <div class="kpi"><span class="chip azul">${ico('pin')}</span><div><span>Setores</span><b>${nomesSetores().length}</b></div></div>
+      <div class="kpi"><span class="chip verde">${ico('equipe')}</span><div><span>Com dupla</span><b>${nomesSetores().length - semDupla}</b></div></div>
+      <div class="kpi"><span class="chip ambar">${ico('alerta')}</span><div><span>Sem dupla</span><b>${semDupla}</b>${semDupla ? `<small><a href="#/setores" onclick="setF.dupla='sem'">mostrar</a></small>` : ''}</div></div>
+    </div>
+    <div class="card">
+      <div class="linha">
+        <input class="cresce" style="flex:2" placeholder="Buscar setor (ex.: ARMAZÉM REFRIGERADO 01, TSI, SECADOR 3)…" value="${esc(setF.q)}" onchange="setF.q=this.value;telaSetores()">
+        <select class="cresce" onchange="setF.dupla=this.value;telaSetores()"><option value="">Todas as duplas</option><option value="sem" ${setF.dupla === 'sem' ? 'selected' : ''}>Sem dupla</option>${duplas().map(d => `<option value="${d}" ${setF.dupla === d ? 'selected' : ''}>Dupla ${d} · ${esc(nomesDupla(d))}</option>`).join('')}</select>
+        <button class="btn sec peq" onclick="setF={q:'',dupla:''};telaSetores()">Limpar</button>
+      </div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <div class="tbl-scroll tbl-alta"><table>
+        <tr><th style="width:36px"><input type="checkbox" ${todos ? 'checked' : ''} onchange="marcarSetores(this.checked)" title="Marcar todos os filtrados"></th><th>Setor (localização)</th><th>Equipamentos</th><th style="min-width:290px">Dupla responsável</th><th style="min-width:110px">${nomeMes(mes)}</th><th>Situação</th></tr>
+        ${linhas.map(x => `<tr><td><input type="checkbox" class="sel-setor" value="${esc(x.nome)}" ${setSel.has(x.nome) ? 'checked' : ''} onchange="this.checked?setSel.add(this.value):setSel.delete(this.value);contarSetores()"></td>
+          <td><b>${esc(x.nome)}</b></td><td class="muted"><a href="#/equipamentos" onclick="eqF={q:'',cat:'',dupla:'',st:'',setor:${js(x.nome)}}">${qtdTipos(x.eqs)}</a></td>
+          <td>${selDupla(x.dupla, `mudarDuplaSetores([${js(x.nome)}], this.value)`)}</td>
+          <td><div class="barra"><i style="width:${x.pct}%"></i></div><small class="muted">${x.feitos}/${x.total}</small></td><td>${situacao(x)}</td></tr>`).join('')}
+      </table>${linhas.length ? '' : '<p class="muted" style="padding:16px">Nenhum setor encontrado.</p>'}</div>
+    </div>
+    <div class="acoes">
+      <b id="n-set">${setSel.size} setor(es) marcado(s)</b>
+      <span>→ dupla</span>
+      ${selDupla(duplaAlvo, 'duplaAlvo=this.value', 'id="dupla-setores"')}
+      <button class="btn verde peq" onclick="aplicarDuplaSetores()">${ico('ok')} Aplicar aos marcados</button>
+      <button class="btn escuro peq" onclick="setSel.clear();telaSetores()">Limpar marcação</button>
+      <span class="muted" style="color:#a7adb8;margin-left:auto">Novo equipamento? Cadastre no Supabase (tabela equipamentos) com a localização; o setor aparece aqui sozinho.</span>
+    </div>`);
+}
+function contarSetores() { document.getElementById('n-set').textContent = setSel.size + ' setor(es) marcado(s)'; }
+function marcarSetores(v) {
+  document.querySelectorAll('.sel-setor').forEach(c => { c.checked = v; v ? setSel.add(c.value) : setSel.delete(c.value); });
+  contarSetores();
+}
+function aplicarDuplaSetores() {
+  if (!setSel.size) return toast('Marque pelo menos um setor');
+  const lista = [...setSel];
+  setSel.clear();
+  mudarDuplaSetores(lista, document.getElementById('dupla-setores').value);
+}
+function mudarDuplaSetores(setores, dupla) {
+  alterar('setorDupla', { setores, dupla }, d => {
+    setores.forEach(setor => {
+      const s = d.setores.find(x => String(x.Setor).trim().toUpperCase() === setor.trim().toUpperCase());
+      if (s) s.Dupla = dupla; else d.setores.push({ Setor: setor, Dupla: dupla });
+    });
+  }, `${setores.length === 1 ? setores[0] : setores.length + ' setores'} → ${dupla ? 'dupla ' + dupla : 'sem dupla'}`);
+}
+const mudarDuplaSetor = (setor, dupla) => mudarDuplaSetores([setor], dupla);
+
+/* ---------- Duplas e brigadistas ---------- */
+let abaDuplas = 'duplas';
+function telaDuplas() {
+  const mes = mesAtual();
+  const semDupla = S.brigadistas.filter(b => ativo(b) && !b.Dupla);
+  const ativos = S.brigadistas.filter(ativo).sort((a, b) => a.Nome.localeCompare(b.Nome));
+  const abas = `<div class="abas"><a href="#/duplas" class="${abaDuplas === 'duplas' ? 'ativo' : ''}" onclick="abaDuplas='duplas'">Duplas</a><a href="#/duplas" class="${abaDuplas === 'brig' ? 'ativo' : ''}" onclick="abaDuplas='brig'">Brigadistas (${S.brigadistas.length})</a></div>`;
+  if (abaDuplas === 'brig') return telaBrigadistas(abas);
+  render(`
+    <div class="titulo-pag"><h2>Duplas e brigadistas</h2><div class="muted">Monte as duplas e defina quais setores cada uma cuida. Clique no ✕ para tirar, use as listas para adicionar.</div></div>
+    ${abas}
+    <div class="card">
+      <h3>Criar nova dupla (nº ${proximaDupla()})</h3>
+      <div class="linha">
+        ${[1, 2].map(i => `<select class="cresce" id="nd${i}"><option value="">— Brigadista ${i} —</option>${ativos.map(b => `<option value="${esc(b.Nome)}">${esc(b.Nome)}${b.Dupla ? ' (dupla ' + esc(b.Dupla) + ')' : ''}</option>`).join('')}</select>`).join('')}
+        <button class="btn peq" onclick="criarDupla()">${ico('mais')} Criar dupla</button>
+      </div>
+      ${semDupla.length ? `<p class="aviso">Sem dupla: ${semDupla.map(b => esc(b.Nome)).join(', ')}</p>` : ''}
+    </div>
+    <div class="duplas">
+      ${duplas().map(d => {
+        const eqs = equipamentos().filter(e => duplaDe(e) === d), r = resumo(eqs, mes);
+        const membros = membrosDupla(d);
+        return `<div class="card">
+          <div class="linha"><span class="dupla-num">${esc(d)}</span><div class="cresce"><b>Dupla ${esc(d)}</b><div class="muted">${r.total} equipamentos · ${r.feitos} feitos em ${MESES[+mes.split('-')[1] - 1].toLowerCase()}</div></div>${situacao(r)}</div>
+          <div class="barra"><i style="width:${r.pct}%"></i></div>
+          <div class="rotulo">Brigadistas</div>
+          <div class="pilulas">${membros.map(b => `<span class="pilula pessoa">${esc(b.Nome)} <button title="Tirar da dupla" onclick="mudarDuplaBrigadista(${js(b.Nome)},'')">${ico('x')}</button></span>`).join('')}</div>
+          <div class="compacto"><select onchange="if(this.value)mudarDuplaBrigadista(this.value,'${d}')"><option value="">+ Adicionar brigadista…</option>
+            ${ativos.filter(b => String(b.Dupla) !== d).map(b => `<option value="${esc(b.Nome)}">${esc(b.Nome)}${b.Dupla ? ' (sai da dupla ' + esc(b.Dupla) + ')' : ''}</option>`).join('')}</select></div>
+          <div class="rotulo">Setores</div>
+          <div class="pilulas">${setoresDaDupla(d).map(s => `<span class="pilula">${esc(s)} <button title="Tirar setor da dupla" onclick="mudarDuplaSetor(${js(s)},'')">${ico('x')}</button></span>`).join('') || '<span class="muted">Nenhum setor</span>'}</div>
+          <a class="btn sec peq" href="#/setores" onclick="setF={q:'',dupla:'sem'};duplaAlvo='${d}'">${ico('mais')} Adicionar setores à dupla ${esc(d)}</a>
+        </div>`; }).join('')}
+    </div>`);
+}
+function mudarDuplaBrigadista(nome, dupla) {
+  alterar('brigadista', { nome, dupla }, d => { const b = d.brigadistas.find(x => x.Nome === nome); if (b) b.Dupla = dupla; },
+    `${primeiroNome(nome)} → ${dupla ? 'dupla ' + dupla : 'sem dupla'}`);
+}
+async function criarDupla() {
+  const nomes = [document.getElementById('nd1').value, document.getElementById('nd2').value].filter(Boolean);
+  if (!nomes.length) return toast('Escolha pelo menos um brigadista');
+  const nova = proximaDupla();
+  for (const nome of nomes) {
+    try { await alterarCadastro('brigadista', { nome, dupla: nova }, pinGestao(), d => { const b = d.brigadistas.find(x => x.Nome === nome); if (b) b.Dupla = nova; }); }
+    catch (e) { toast(e.message); break; }
+  }
+  toast('Dupla ' + nova + ' criada. Agora adicione os setores dela.');
+  recarregarTela();
+}
+
+function telaBrigadistas(abas) {
+  const lista = S.brigadistas.slice().sort((a, b) => (ativo(b) - ativo(a)) || a.Nome.localeCompare(b.Nome));
+  render(`
+    <div class="titulo-pag"><h2>Duplas e brigadistas</h2><div class="muted">Cadastro dos brigadistas. Desativar tira a pessoa da lista do app sem apagar o histórico.</div></div>
+    ${abas}
+    <div class="card">
+      <h3>Novo brigadista</h3>
+      <div class="linha">
+        <input class="cresce" id="nb-nome" placeholder="Nome completo" style="flex:2">
+        <input class="cresce" id="nb-setor" placeholder="Setor de trabalho (ex.: PRODUÇÃO)">
+        <div class="cresce">${selDupla('', '', 'id="nb-dupla"')}</div>
+        <button class="btn peq" onclick="criarBrigadista()">${ico('mais')} Cadastrar</button>
+      </div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <div class="tbl-scroll tbl-alta"><table>
+        <tr><th>Nome</th><th>Setor de trabalho</th><th style="min-width:280px">Dupla</th><th>Situação</th></tr>
+        ${lista.map(b => `<tr style="${ativo(b) ? '' : 'opacity:.55'}"><td><b>${esc(b.Nome)}</b></td><td class="muted">${esc(b.Setor)}</td>
+          <td>${selDupla(b.Dupla, `mudarDuplaBrigadista(${js(b.Nome)}, this.value)`)}</td>
+          <td>${ativo(b) ? `<button class="btn sec peq" onclick="mudarAtivo(${js(b.Nome)},'NÃO')">Desativar</button>` : `<button class="btn sec peq" onclick="mudarAtivo(${js(b.Nome)},'SIM')">Reativar</button>`}</td></tr>`).join('')}
+      </table></div>
+    </div>`);
+}
+function mudarAtivo(nome, valor) {
+  alterar('brigadista', { nome, ativo: valor }, d => { const b = d.brigadistas.find(x => x.Nome === nome); if (b) b.Ativo = valor; },
+    `${primeiroNome(nome)} ${valor === 'SIM' ? 'reativado' : 'desativado'}`);
+}
+function criarBrigadista() {
+  const nome = document.getElementById('nb-nome').value.trim().toUpperCase();
+  const setor = document.getElementById('nb-setor').value.trim().toUpperCase();
+  const dupla = document.getElementById('nb-dupla').value;
+  if (!nome) return toast('Digite o nome');
+  if (S.brigadistas.some(b => b.Nome === nome)) return toast('Já existe um brigadista com esse nome');
+  alterar('brigadista', { nome, setor, dupla }, d => { d.brigadistas.push({ Nome: nome, Setor: setor, Dupla: dupla, Ativo: 'SIM' }); }, primeiroNome(nome) + ' cadastrado');
+}
+
+/* ---------- Equipamentos (consulta: a dupla vem do setor/localização) ---------- */
+let eqF = { q: '', cat: '', dupla: '', st: '', setor: '' };
+function telaEquipamentos() {
+  const mes = mesAtual();
+  const q = eqF.q.toLowerCase();
+  const lista = equipamentos().map(e => ({ e, s: statusEq(e.Codigo, mes), d: duplaDe(e) })).filter(({ e, s, d }) =>
+    (!eqF.cat || e.Categoria === eqF.cat) && (!eqF.st || s.st === eqF.st) && (!eqF.setor || setorDe(e) === eqF.setor)
+    && (!eqF.dupla || (eqF.dupla === 'sem' ? !d : d === eqF.dupla))
+    && (!q || (e.Codigo + ' ' + e.Local + ' ' + e.Tipo + ' ' + e.Grupo).toLowerCase().includes(q)));
+  render(`
+    <div class="titulo-pag"><h2>Equipamentos</h2><div class="muted">Consulta do status de ${nomeMes(mes)}. O responsável vem do <b>setor</b> (localização): para trocar, mude a dupla do setor em <a href="#/setores">Setores</a>. Para cadastrar, mudar a localização ou desativar um equipamento, use o Supabase (tabela equipamentos).</div></div>
+    <div class="card">
+      <div class="filtros" style="grid-template-columns:2fr repeat(5,1fr)">
+        <input placeholder="Buscar código, localização, tipo…" value="${esc(eqF.q)}" onchange="eqF.q=this.value;telaEquipamentos()">
+        <select onchange="eqF.setor=this.value;telaEquipamentos()"><option value="">Todos os setores</option>${nomesSetores().map(s => `<option ${s === eqF.setor ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select>
+        <select onchange="eqF.cat=this.value;telaEquipamentos()"><option value="">Todas categorias</option>${categorias().map(c => `<option ${c === eqF.cat ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select>
+        <select onchange="eqF.dupla=this.value;telaEquipamentos()"><option value="">Todas as duplas</option><option value="sem" ${eqF.dupla === 'sem' ? 'selected' : ''}>Sem dupla</option>${duplas().map(d => `<option value="${d}" ${eqF.dupla === d ? 'selected' : ''}>Dupla ${d}</option>`).join('')}</select>
+        <select onchange="eqF.st=this.value;telaEquipamentos()"><option value="">Qualquer status</option>${[['pend', 'Pendente'], ['ok', 'OK'], ['nc', 'Com problema']].map(([v, t]) => `<option value="${v}" ${eqF.st === v ? 'selected' : ''}>${t}</option>`).join('')}</select>
+        <button class="btn sec peq" onclick="eqF={q:'',cat:'',dupla:'',st:'',setor:''};telaEquipamentos()">Limpar</button>
+      </div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <div class="tbl-scroll tbl-alta"><table>
+        <tr><th>Código</th><th>Tipo</th><th>Setor (localização)</th><th>Dupla</th><th>Status do mês</th><th>Último checklist</th></tr>
+        ${lista.map(({ e, s, d }) => `<tr><td><b>${esc(e.Codigo)}</b></td><td>${esc(nomeTipo(e))}</td><td>${esc(e.Local)}${e.Grupo ? ` <span class="muted">· ${esc(e.Grupo)}</span>` : ''}</td>
+          <td>${d ? `<b>${esc(d)}</b> <span class="muted">${esc(nomesDupla(d))}</span>` : '<span class="tag cinza">Sem dupla</span>'}</td>
+          <td>${tagStatus(s)}</td><td class="muted">${s.reg ? fmtData(s.reg.DataHora) + ' · ' + esc(primeiroNome(s.reg.Brigadista)) : '—'}</td></tr>`).join('')}
+      </table>${lista.length ? '' : '<p class="muted" style="padding:16px">Nada encontrado.</p>'}</div>
+    </div>
+    <p class="muted">${lista.length} de ${equipamentos().length} equipamentos</p>`);
+}
+
+/* ---------- Histórico de checklists ---------- */
+let histF = { mes: null, q: '', dupla: '', res: '' };
+function telaHistorico() {
+  const mes = histF.mes ?? mesAtual();
+  const q = histF.q.toLowerCase();
+  const lista = S.registros.filter(r => (!mes || mesReg(r) === mes) && (!histF.res || r.Resultado === histF.res)
+    && (!histF.dupla || String(r.Dupla) === histF.dupla)
+    && (!q || (r.Codigo + ' ' + r.Local + ' ' + (r.Setor || '') + ' ' + r.Brigadista + ' ' + r.Observacao).toLowerCase().includes(q)))
+    .sort((a, b) => b.DataHora.localeCompare(a.DataHora));
+  render(`
+    <div class="titulo-pag"><h2>Histórico</h2><div class="muted">Todos os checklists registrados. Clique numa linha para ver os itens.</div></div>
+    <div class="card">
+      <div class="filtros">
+        <input placeholder="Buscar código, local, setor, brigadista, observação…" value="${esc(histF.q)}" onchange="histF.q=this.value;telaHistorico()">
+        ${selMes(mes, "histF.mes=this.value;telaHistorico()", true)}
+        <select onchange="histF.dupla=this.value;telaHistorico()"><option value="">Todas as duplas</option>${duplas().map(d => `<option value="${d}" ${histF.dupla === d ? 'selected' : ''}>Dupla ${d}</option>`).join('')}</select>
+        <select onchange="histF.res=this.value;telaHistorico()"><option value="">Todos resultados</option><option value="OK" ${histF.res === 'OK' ? 'selected' : ''}>OK</option><option value="NC" ${histF.res === 'NC' ? 'selected' : ''}>Com problema</option></select>
+        <button class="btn sec peq" onclick="exportarCSV(${mes ? `'${mes}'` : 'null'}, histLista)">${ico('baixar')} CSV (${lista.length})</button>
+      </div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <div class="tbl-scroll tbl-alta"><table>
+        <tr><th>Data</th><th>Código</th><th>Setor / local</th><th>Dupla</th><th>Brigadista</th><th>Resultado</th><th>Problemas / observação</th></tr>
+        ${lista.map((r, i) => `<tr class="clic" onclick="verItens(this, ${i})"><td class="muted" style="white-space:nowrap">${fmtData(r.DataHora)}</td><td><b>${esc(r.Codigo)}</b></td><td>${r.Setor ? `<b>${esc(r.Setor)}</b><br>` : ''}<span class="muted">${esc(r.Local)}</span></td><td>${esc(r.Dupla || '—')}</td>
+          <td>${esc(r.Brigadista)}</td><td>${r.Resultado === 'OK' ? '<span class="tag ok">OK</span>' : '<span class="tag nc">Com problema</span>'}</td>
+          <td>${r.ItensNC ? `<b style="color:var(--red)">${esc(r.ItensNC)}</b><br>` : ''}<span class="muted">${esc(r.Observacao)}</span></td></tr>`).join('')}
+      </table>${lista.length ? '' : '<p class="muted" style="padding:16px">Nenhum checklist encontrado.</p>'}</div>
+    </div>`);
+  window.histLista = lista;
+}
+function verItens(tr, i) {
+  const prox = tr.nextElementSibling;
+  if (prox && prox.classList.contains('det')) return prox.remove();
+  let det = {}; try { det = JSON.parse(histLista[i].Detalhe || '{}'); } catch (e) {}
+  const itens = Object.entries(det.itens || {});
+  tr.insertAdjacentHTML('afterend', `<tr class="det"><td></td><td colspan="6"><ul class="detalhe-itens">${itens.map(([t, v]) => `<li class="${v}">${v === 'ok' ? '✔' : '✖'} ${esc(t)}</li>`).join('') || '<li>Sem detalhe</li>'}</ul>
+    <small class="muted">Origem: ${esc(det.origem || '—')}</small></td></tr>`);
+}
+
+/* ---------- Etiquetas QR ---------- */
+let qrF = { q: '', cat: '', setor: '' };
+/* Códigos secretos dos QR: vêm do banco só para a gestão (com PIN). Na demonstração, ficam no navegador. */
+let TOKENS = null;
+async function carregarTokens() {
+  if (DEMO) { TOKENS = Object.fromEntries((lsGet(LS.demo, {}).equipamentos || []).map(e => [e.Codigo.toUpperCase(), e.Token])); return; }
+  const j = await api({ acao: 'tokens', pin: pinGestao() });
+  TOKENS = j.tokens;
+}
+const tokenDe = cod => (TOKENS || {})[String(cod).toUpperCase()] || '';
+async function trocarCodigo(cod) {
+  if (!confirm(`Trocar o código do QR de ${cod}?\n\nA etiqueta atual deixa de funcionar. Imprima e cole a nova no equipamento.`)) return;
+  try {
+    if (DEMO) {
+      const d = JSON.parse(JSON.stringify(lsGet(LS.demo, {})));
+      const e = d.equipamentos.find(x => x.Codigo === cod); e.Token = novoToken(); lsSet(LS.demo, d);
+    } else await api({ acao: 'novoToken', pin: pinGestao(), codigo: cod });
+    TOKENS = null;
+    qrF.q = cod;
+    toast(`Código de ${cod} trocado. Imprima a etiqueta nova.`);
+  } catch (e) { toast(e.message); }
+  telaEtiquetas();
+}
+async function telaEtiquetas() {
+  if (!TOKENS) {
+    render('<div class="carregando">Buscando os códigos das etiquetas…</div>');
+    try { await carregarTokens(); } catch (e) { return render(`<div class="card"><h2>Não foi possível buscar os códigos</h2><p class="muted">${esc(e.message)}</p></div>`); }
+  }
+  const q = qrF.q.toLowerCase();
+  const lista = equipamentos().filter(e => (!qrF.cat || e.Categoria === qrF.cat) && (!qrF.setor || setorDe(e) === qrF.setor)
+    && (!q || (e.Codigo + ' ' + e.Local).toLowerCase().includes(q)));
+  render(`
+    <div class="titulo-pag nao-imprimir"><h2>Etiquetas QR Code</h2><div class="muted">Imprima em papel adesivo e plastifique. Cada QR tem um código secreto: o checklist <b>só</b> é aceito lendo a etiqueta no local. Se uma etiqueta for copiada ou fotografada, use "trocar código" e cole a nova.</div></div>
+    <div class="card nao-imprimir">
+      <div class="linha">
+        <input class="cresce" placeholder="Código ou local…" value="${esc(qrF.q)}" onchange="qrF.q=this.value;telaEtiquetas()">
+        <select class="cresce" onchange="qrF.setor=this.value;telaEtiquetas()"><option value="">Todos os setores</option>${nomesSetores().map(s => `<option ${s === qrF.setor ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select>
+        <select class="cresce" onchange="qrF.cat=this.value;telaEtiquetas()"><option value="">Todas categorias</option>${categorias().map(c => `<option ${c === qrF.cat ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select>
+        <button class="btn peq" onclick="window.print()">${ico('imprimir')} Imprimir ${lista.length}</button>
+      </div>
+      ${location.protocol !== 'https:' ? `<p class="aviso">Imprima as etiquetas pelo endereço oficial do GitHub Pages (https://…github.io/…). Este QR aponta para ${esc(location.host || 'um arquivo local')} e não vai funcionar nos celulares.</p>` : ''}
+    </div>
+    <div class="etiquetas">${lista.map(e => `<div class="etq"><div class="top">${ESCUDO} BRIGADA DE EMERGÊNCIA</div>
+      ${tokenDe(e.Codigo) ? `<div class="qr" data-url="${esc(urlEquip(e.Codigo, tokenDe(e.Codigo)))}"></div>` : '<p class="aviso" style="margin:10px">Sem código: clique em Atualizar</p>'}<b>${esc(e.Codigo)}</b><small>${esc(nomeTipo(e))}</small><small>${esc(e.Local)}</small>
+      <div class="rod"><img src="logo.png" alt="" onerror="this.hidden=true"><span>Leia para fazer o checklist</span></div>
+      <a href="javascript:void 0" class="nao-imprimir" style="display:block;font-size:.75rem;padding-bottom:8px" onclick="trocarCodigo(${js(e.Codigo)})">trocar código</a></div>`).join('')}</div>`);
+  gerarQRs();
+}
+
+/* ---------- Configuração ---------- */
+function telaConfig() {
+  const vazio = !DEMO && !S.equipamentos.length;
+  render(`
+    <div class="titulo-pag"><h2>Configuração</h2><div class="muted">Conexão, cadastro e link do app para os brigadistas</div></div>
+    <div class="grade-painel">
+      <div class="card">
+        <h3>Link do app da brigada</h3>
+        <p class="muted">Mande para os brigadistas (WhatsApp) ou imprima este QR no quadro de avisos. No celular, "Adicionar à tela inicial" cria um ícone.</p>
+        <div class="linha"><div class="qr" data-url="${esc(urlApp())}" style="margin:0"></div><div class="cresce"><b style="word-break:break-all">${esc(urlApp())}</b><br>
+          <button class="btn sec peq" style="margin-top:10px" onclick="navigator.clipboard.writeText('${esc(urlApp())}').then(()=>toast('Link copiado'))">Copiar link</button></div></div>
+      </div>
+      <div class="card">
+        <h3>Conexão</h3>
+        <p>${DEMO ? '<span class="tag pend">Modo demonstração</span> <span class="muted">Os dados ficam só neste navegador. Preencha SUPABASE_URL e SUPABASE_KEY em <code>comum.js</code>.</span>'
+          : S.offline ? '<span class="tag nc">Sem conexão</span> <span class="muted">Não foi possível ler o banco de dados.</span>' : '<span class="tag ok">Conectado ao Supabase</span>'}</p>
+        <p class="muted" style="margin-bottom:0">${equipamentos().length} equipamentos ativos (${qtdTipos(equipamentos())}) · ${S.setores.length} setores · ${duplas().length} duplas · ${S.brigadistas.filter(ativo).length} brigadistas · ${S.registros.length} checklists nos últimos 13 meses.</p>
+        ${vazio ? '<p class="aviso">O banco está vazio. Rode o arquivo <code>supabase/dados-iniciais.sql</code> no SQL Editor do Supabase (veja LEIAME.md).</p>' : ''}
+        ${DEMO ? `<button class="btn sec peq" style="margin-top:14px" onclick="if(confirm('Apagar todos os dados de demonstração deste navegador?')){lsSet(LS.demo,null);sincronizar(true)}">${ico('lixo')} Reiniciar dados de demonstração</button>` : ''}
+      </div>
+    </div>`);
+  gerarQRs();
+}
+
+/* ---------- Início ---------- */
+document.getElementById('btn-sync').innerHTML = ico('sync');
+document.getElementById('btn-sair').innerHTML = ico('sair') + ' Sair';
+window.addEventListener('hashchange', rota);
+(async () => {
+  await carregar();
+  atualizarBanner();
+  rota();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#15181d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Brigada Checklist</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 2l8 3v6c0 5-3.5 9.5-8 11-4.5-1.5-8-6-8-11V5z' fill='%23d6262f'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="estilo.css">
+<style>
+  /* Específico do app de celular */
+  .btn-scan { min-height: 132px; justify-content: flex-start; gap: 18px; padding: 20px 22px; text-align: left; position: relative; overflow: hidden; }
+  .btn-scan .ic { width: 58px; height: 58px; }
+  .btn-scan b { display: block; font-size: 1.5rem; font-weight: 800; }
+  .btn-scan small { display: block; font-weight: 500; opacity: .85; font-size: .9rem; }
+  .btn-scan::after { content: ""; position: absolute; right: -30px; top: -30px; width: 140px; height: 140px; border-radius: 50%; background: rgba(255,255,255,.08); }
+  .btn-meus { min-height: 76px; justify-content: flex-start; text-align: left; }
+  .btn-meus .tag { margin-left: auto; }
+  .nomes .btn { justify-content: flex-start; text-align: left; min-height: 60px; font-size: 1rem; margin-bottom: 8px; font-weight: 600; }
+  .nomes .btn small { margin-left: auto; font-weight: 500; color: var(--muted); white-space: nowrap; }
+  .ativo-card .topo-eq { display: flex; gap: 14px; align-items: center; }
+  .ativo-card .topo-eq .chip { width: 54px; height: 54px; border-radius: 14px; background: var(--red); color: #fff; }
+  .ativo-card .topo-eq .chip .ic { width: 30px; height: 30px; }
+  .ativo-card .cod { font-size: 1.6rem; font-weight: 800; line-height: 1.1; }
+  .ativo-card dl { margin: 16px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 9px 14px; font-size: .92rem; }
+  .ativo-card dt { color: #a7adb8; }
+  .ativo-card dd { margin: 0; text-align: right; font-weight: 600; }
+  .item { border: 1px solid var(--line); border-radius: var(--raio); padding: 14px; margin-bottom: 10px; background: #fff; box-shadow: var(--sombra); }
+  .item.ok { border-color: var(--green); box-shadow: inset 4px 0 0 var(--green), var(--sombra); }
+  .item.nc { border-color: var(--red); box-shadow: inset 4px 0 0 var(--red), var(--sombra); background: #fffafa; }
+  .item p { margin: 0 0 12px; font-weight: 600; display: flex; gap: 10px; }
+  .item p .n { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .item .opc { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .item .opc button { min-height: 58px; font: inherit; font-size: 1.05rem; font-weight: 700; border-radius: 11px; border: 1.5px solid var(--line); background: #f8f9fb; color: var(--txt); display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; }
+  .item.ok .opc .b-ok { background: var(--green); border-color: var(--green); color: #fff; }
+  .item.nc .opc .b-nc { background: var(--red); border-color: var(--red); color: #fff; }
+  .ok-msg { text-align: center; padding: 34px 18px; }
+  .ok-msg .chip { width: 76px; height: 76px; border-radius: 50%; margin-bottom: 10px; }
+  .ok-msg .chip .ic { width: 40px; height: 40px; }
+  .scan-box { background: var(--ink); border-radius: 18px; padding: 18px; color: #fff; text-align: center; }
+  .scan-box h2 { margin: 0; }
+  .scan-frame { position: relative; margin: 16px auto 8px; max-width: 420px; }
+  #leitor { width: 100%; border-radius: 12px; overflow: hidden; background: #000; min-height: 280px; }
+  #leitor video { object-fit: cover; }
+  .scan-frame .c { position: absolute; width: 38px; height: 38px; border: 4px solid #fff; z-index: 2; pointer-events: none; }
+  .scan-frame .c1 { top: -6px; left: -6px; border-right: 0; border-bottom: 0; border-radius: 12px 0 0 0; }
+  .scan-frame .c2 { top: -6px; right: -6px; border-left: 0; border-bottom: 0; border-radius: 0 12px 0 0; }
+  .scan-frame .c3 { bottom: -6px; left: -6px; border-right: 0; border-top: 0; border-radius: 0 0 0 12px; }
+  .scan-frame .c4 { bottom: -6px; right: -6px; border-left: 0; border-top: 0; border-radius: 0 0 12px 0; }
+  @media (max-width: 420px) { .marca small { display: none; } }
+</style>
+</head>
+<body>
+<header class="topo">
+  <button class="ibtn" id="btn-voltar" aria-label="Voltar" onclick="voltar()" hidden></button>
+  <a class="marca" href="#/">
+    <svg class="escudo" viewBox="0 0 24 24"><path d="M12 2l8 3v6c0 5-3.5 9.5-8 11-4.5-1.5-8-6-8-11V5z" fill="#d6262f"/><path d="M12.2 7.2c1.6 1.9 3.1 3.2 3.1 5.5a3.3 3.3 0 0 1-6.6 0c0-1.3.6-2.2 1.4-2.9.1 1.1.7 1.7 1.3 1.7 0-1.7-.2-2.8.8-4.3z" fill="#fff"/></svg>
+    <span style="min-width:0"><b id="titulo">Brigada</b><small>Checklist de equipamentos</small></span>
+  </a>
+  <img class="logo" src="logo.png" alt="Dois Marcos Sementes" onerror="this.hidden=true">
+  <button class="ibtn" id="btn-sync" onclick="sincronizar(true)" aria-label="Atualizar dados"></button>
+</header>
+<div id="banner"></div>
+<main id="app"><div class="carregando">Carregando…</div></main>
+
+<script src="dados-iniciais.js"></script>
+<script src="comum.js"></script>
+<script>
+/* =================== APP DA BRIGADA (celular) =================== */
+let leitorQR = null;
+let destinoPosLogin = '';   // rota pedida antes de escolher o nome (ex.: link do QR)
+const usuario = () => lsGet(LS.usuario, null);
+/* dupla atual do brigadista (lida do cadastro, para refletir trocas feitas na gestão) */
+function minhaDupla() { const u = usuario(); const b = u && S.brigadistas.find(x => x.Nome === u.Nome); return String(b ? b.Dupla || '' : (u && u.Dupla) || ''); }
+
+/* Leitura do QR: o checklist só abre com o código secreto lido na etiqueta.
+   O código fica só na memória (some do endereço) e vale por 30 minutos. */
+const VALIDADE_LEITURA_MIN = 30;
+let leitura = null; // { cod, token, em }
+function leituraValida(cod) {
+  return leitura && leitura.cod.toUpperCase() === String(cod).toUpperCase() && Date.now() - leitura.em < VALIDADE_LEITURA_MIN * 60000;
+}
+
+const ROTAS = { '': telaInicio, 'quem': telaQuem, 'ler': telaLer, 'eq': telaChecklist, 'meus': telaMeus };
+
+function rota() {
+  pararLeitor();
+  let partes = location.hash.replace(/^#\/?/, '').split('/');
+  // link vindo do QR: #/eq/CODIGO/TOKEN → guarda o token e tira do endereço
+  if (partes[0] === 'eq' && partes[2]) {
+    leitura = { cod: decodeURIComponent(partes[1]), token: decodeURIComponent(partes[2]), em: Date.now() };
+    history.replaceState(null, '', '#/eq/' + partes[1]);
+    partes = partes.slice(0, 2);
+  }
+  const nome = ROTAS[partes[0]] ? partes[0] : '';
+  const arg = decodeURIComponent(partes.slice(1).join('/'));
+  if (!usuario() && nome !== 'quem') {
+    destinoPosLogin = location.hash.replace(/^#\/?/, '');
+    return telaQuem();
+  }
+  document.getElementById('btn-voltar').hidden = nome === '';
+  ROTAS[nome](arg);
+  window.scrollTo(0, 0);
+}
+function render(titulo, html) {
+  document.getElementById('titulo').textContent = titulo;
+  document.getElementById('app').innerHTML = html;
+}
+
+async function sincronizar(manual) {
+  const b = document.getElementById('btn-sync');
+  b.disabled = true;
+  await enviarFila();
+  await carregar();
+  b.disabled = false;
+  atualizarBanner();
+  rota();
+  if (manual) toast(S.offline ? 'Sem internet — usando dados salvos' : 'Dados atualizados');
+}
+
+/* ---------- Login: escolher o nome ---------- */
+function telaQuem() {
+  document.getElementById('btn-voltar').hidden = !usuario();
+  const lista = S.brigadistas.filter(ativo).sort((a, b) => a.Nome.localeCompare(b.Nome));
+  render('Brigada', `
+    <div class="card escuro">
+      <h2 style="margin-bottom:4px">Quem é você?</h2>
+      <p class="muted" style="margin-top:0">Toque no seu nome. O app vai lembrar neste celular.</p>
+      <input id="busca-nome" type="search" placeholder="Digite parte do nome…" oninput="filtrarNomes(this.value)" autocomplete="off">
+    </div>
+    <div class="nomes" id="nomes">
+      ${lista.map(b => `<button type="button" class="btn sec" data-n="${esc(semAcento(b.Nome))}" onclick="escolherUsuario(${S.brigadistas.indexOf(b)})">
+        ${esc(b.Nome)} <small>${b.Dupla ? 'Dupla ' + esc(b.Dupla) : esc(b.Setor)}</small></button>`).join('')}
+      ${lista.length ? '' : `<div class="card"><b>Nenhum brigadista carregado.</b><p class="muted">Verifique a internet e toque em atualizar no topo. Se continuar, avise o coordenador.</p></div>`}
+    </div>`);
+}
+const semAcento = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+function filtrarNomes(q) {
+  q = semAcento(q).trim();
+  document.querySelectorAll('#nomes .btn').forEach(b => b.hidden = q && !b.dataset.n.includes(q));
+}
+function escolherUsuario(i) {
+  const b = S.brigadistas[i];
+  lsSet(LS.usuario, { Nome: b.Nome, Dupla: String(b.Dupla || '') });
+  const destino = destinoPosLogin && destinoPosLogin !== 'quem' ? destinoPosLogin : '';
+  destinoPosLogin = '';
+  ir(destino);
+  toast('Olá, ' + primeiroNome(b.Nome) + '!');
+}
+function sair() { lsSet(LS.usuario, null); ir('quem'); }
+
+/* ---------- Início ---------- */
+function telaInicio() {
+  const u = usuario();
+  const meus = equipamentos().filter(e => minhaDupla() && duplaDe(e) === minhaDupla());
+  const r = resumo(meus, mesAtual());
+  const parceiro = membrosDupla(minhaDupla()).filter(b => b.Nome !== u.Nome).map(b => primeiroNome(b.Nome)).join(', ');
+  render('Brigada', `
+    <div class="card escuro">
+      <div class="donut-wrap" style="gap:16px">
+        <div style="flex:1;min-width:170px">
+          <div class="muted">Olá,</div>
+          <h2 style="margin:0 0 4px;font-size:1.3rem">${esc(u.Nome)}</h2>
+          <div class="muted">${minhaDupla() ? 'Dupla ' + esc(minhaDupla()) + (parceiro ? ' · com ' + esc(parceiro) : '') : 'Sem dupla definida'}</div>
+          <button class="btn peq escuro" style="margin-top:12px" onclick="sair()">${ico('sair')} Não sou eu</button>
+        </div>
+        ${meus.length ? donut([{ v: r.ok, cor: COR.ok }, { v: r.nc, cor: COR.nc }], r.pct + '%', 'feito', 116, 'rgba(255,255,255,.14)') : ''}
+      </div>
+      ${meus.length ? `<div style="margin-top:14px;font-size:.92rem"><b>${nomeMes(mesAtual())}</b> · ${r.feitos} de ${r.total} feitos ·
+        ${r.pend ? `<span style="color:#f5b94a">faltam ${r.pend}</span>` : '<span style="color:#5fd39f">tudo feito ✔</span>'}</div>`
+      : '<p class="muted" style="margin-bottom:0">Nenhum equipamento atribuído à sua dupla ainda.</p>'}
+    </div>
+    <button class="btn btn-scan" onclick="ir('ler')">${ico('scan')}<span><b>Ler QR Code</b><small>Aponte para a etiqueta do equipamento</small></span></button>
+    <button class="btn sec btn-meus" onclick="ir('meus')"><span class="chip ambar">${ico('lista')}</span>Meus equipamentos${r.pend ? `<span class="tag pend">${r.pend} pendentes</span>` : ''}</button>`);
+}
+
+/* ---------- Leitor de QR ---------- */
+function telaLer() {
+  render('Ler QR Code', `
+    <div class="scan-box">
+      <h2>Escanear equipamento</h2>
+      <div class="muted" style="color:#a7adb8">QR Code na etiqueta do extintor ou hidrante</div>
+      <div class="scan-frame"><span class="c c1"></span><span class="c c2"></span><span class="c c3"></span><span class="c c4"></span><div id="leitor"></div></div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <p class="muted" style="margin:0">O checklist só abre lendo o QR Code no local. Etiqueta danificada ou ilegível? <b>Avise o coordenador</b> para imprimir outra.</p>
+    </div>`);
+  iniciarLeitor();
+}
+/* Texto lido no QR → { cod, token }. Etiquetas antigas (sem token) não valem. */
+function lerQR(txt) {
+  const m = String(txt).match(/#\/eq\/([^/?&#\s]+)\/([^/?&#\s]+)/);
+  if (!m) return toast('Este QR Code não é uma etiqueta válida da brigada.');
+  const cod = decodeURIComponent(m[1]);
+  const eq = eqPorCodigo(cod);
+  if (!eq) return toast('Equipamento não encontrado: ' + cod);
+  leitura = { cod: eq.Codigo, token: decodeURIComponent(m[2]), em: Date.now() };
+  ir('eq/' + encodeURIComponent(eq.Codigo));
+}
+function msgLeitor(txt) { const el = document.getElementById('leitor'); if (el) el.innerHTML = `<p style="color:#fff;padding:40px 20px">${txt}</p>`; }
+async function iniciarLeitor() {
+  if (!window.Html5Qrcode) {
+    try { await carregarScript('https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js'); }
+    catch (e) { return msgLeitor('Não foi possível carregar o leitor. Use a câmera do próprio celular para ler o QR Code.'); }
+  }
+  if (!document.getElementById('leitor') || leitorQR) return;
+  leitorQR = new Html5Qrcode('leitor');
+  leitorQR.start({ facingMode: 'environment' }, { fps: 10, qrbox: { width: 230, height: 230 } },
+    txt => { pararLeitor(); if (navigator.vibrate) navigator.vibrate(120); lerQR(txt); },
+    () => {}
+  ).catch(() => msgLeitor('Sem acesso à câmera. Permita o uso da câmera no navegador, ou use a câmera do próprio celular para ler o QR Code.'));
+}
+function pararLeitor() {
+  if (!leitorQR) return;
+  const l = leitorQR; leitorQR = null;
+  try { l.stop().then(() => l.clear()).catch(() => {}); } catch (e) {}
+}
+
+/* ---------- Checklist ---------- */
+let respostas = {};
+function telaChecklist(cod) {
+  const eq = eqPorCodigo(cod);
+  if (!eq) return render('Equipamento', `<div class="card"><h2>Código não encontrado</h2><p>${esc(cod)}</p></div><button class="btn" onclick="ir('')">Início</button>`);
+  const u = usuario();
+  const st = statusEq(eq.Codigo, mesAtual());
+  const itens = itensDe(eq);
+  respostas = {};
+  const outraDupla = duplaDe(eq) && minhaDupla() && duplaDe(eq) !== minhaDupla();
+  if (!leituraValida(eq.Codigo)) return telaPrecisaLer(eq, st);
+  render(eq.Codigo, `
+    <div class="card escuro ativo-card">
+      <div class="topo-eq">
+        <span class="chip">${iconeDe(eq)}</span>
+        <div style="min-width:0"><div class="cod">${esc(eq.Codigo)}</div><div class="muted">${esc(nomeTipo(eq))}</div></div>
+      </div>
+      <dl>
+        <dt>Setor (local)</dt><dd>${esc(eq.Local)}${eq.Grupo ? '<br><span class="muted">' + esc(eq.Grupo) + '</span>' : ''}</dd>
+        <dt>Responsável</dt><dd>${duplaDe(eq) ? 'Dupla ' + esc(duplaDe(eq)) + ' · ' + esc(nomesDupla(duplaDe(eq))) : 'Sem dupla'}</dd>
+        <dt>Último checklist</dt><dd>${st.reg ? fmtData(st.reg.DataHora) + ' · ' + esc(primeiroNome(st.reg.Brigadista)) : '—'}</dd>
+        <dt>Status do mês</dt><dd>${tagStatus(st)}</dd>
+      </dl>
+      ${outraDupla ? `<div class="aviso">Este equipamento é da dupla ${esc(duplaDe(eq))}. Você pode fazer mesmo assim.</div>` : ''}
+    </div>
+    <button class="btn verde" onclick="marcarTodos()">${ico('ok')} Marcar tudo OK</button>
+    <div id="itens">
+      ${itens.map((t, i) => `<div class="item" id="it${i}"><p><span class="n">${String(i + 1).padStart(2, '0')}</span>${esc(t)}</p>
+        <div class="opc"><button class="b-ok" onclick="resp(${i},'ok')">${ico('ok')} OK</button><button class="b-nc" onclick="resp(${i},'nc')">${ico('x')} Problema</button></div></div>`).join('')}
+    </div>
+    <div class="card">
+      <label class="campo" for="obs" style="margin-top:0">Observação <span class="muted" id="obs-obrig"></span></label>
+      <textarea id="obs" placeholder="Descreva o problema encontrado…"></textarea>
+    </div>
+    <button class="btn" style="min-height:70px;font-size:1.2rem" id="btn-salvar" onclick="salvarChecklist('${esc(eq.Codigo)}')">${ico('salvar')} Salvar checklist</button>`);
+}
+/* Sem leitura válida do QR: mostra só as informações e manda ler a etiqueta no local */
+function telaPrecisaLer(eq, st) {
+  render(eq.Codigo, `
+    <div class="card escuro ativo-card">
+      <div class="topo-eq">
+        <span class="chip">${iconeDe(eq)}</span>
+        <div style="min-width:0"><div class="cod">${esc(eq.Codigo)}</div><div class="muted">${esc(nomeTipo(eq))}</div></div>
+      </div>
+      <dl>
+        <dt>Setor (local)</dt><dd>${esc(eq.Local)}</dd>
+        <dt>Status do mês</dt><dd>${tagStatus(st)}</dd>
+      </dl>
+    </div>
+    <div class="card ok-msg" style="padding:24px 18px">
+      <span class="chip ambar">${ico('scan')}</span>
+      <h2>Vá até o equipamento</h2>
+      <p class="muted" style="margin:0">Para fazer o checklist é obrigatório ler o QR Code da etiqueta, no local.${leitura && leitura.cod === eq.Codigo ? ' A leitura anterior expirou (vale ' + VALIDADE_LEITURA_MIN + ' min).' : ''}</p>
+    </div>
+    <button class="btn btn-scan" onclick="ir('ler')">${ico('scan')}<span><b>Ler QR Code</b><small>Aponte para a etiqueta do equipamento</small></span></button>`);
+}
+function resp(i, v) {
+  respostas[i] = v;
+  document.getElementById('it' + i).className = 'item ' + v;
+  const temNC = Object.values(respostas).includes('nc');
+  document.getElementById('obs-obrig').textContent = temNC ? '(obrigatória)' : '';
+}
+function marcarTodos() {
+  document.querySelectorAll('#itens .item').forEach((_, i) => resp(i, 'ok'));
+  document.getElementById('btn-salvar').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+async function salvarChecklist(cod) {
+  const eq = eqPorCodigo(cod), itens = itensDe(eq), u = usuario();
+  const falta = itens.findIndex((_, i) => !respostas[i]);
+  if (falta >= 0) { toast('Responda o item ' + (falta + 1)); document.getElementById('it' + falta).scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+  const nc = itens.filter((_, i) => respostas[i] === 'nc');
+  const obs = document.getElementById('obs').value.trim();
+  if (nc.length && !obs) { toast('Descreva o problema na observação'); document.getElementById('obs').focus(); return; }
+  if (!leituraValida(eq.Codigo)) { toast('A leitura do QR expirou. Leia a etiqueta de novo.'); return ir('ler'); }
+  const btn = document.getElementById('btn-salvar'); btn.disabled = true; btn.textContent = 'Salvando…';
+  const agora = new Date();
+  const reg = {
+    Id: agora.getTime().toString(36) + Math.random().toString(36).slice(2, 7),
+    DataHora: agora.toISOString(), Mes: mesDe(agora),
+    Codigo: eq.Codigo, Categoria: eq.Categoria, Tipo: eq.Tipo, Local: eq.Local, Dupla: duplaDe(eq), Setor: setorDe(eq),
+    Brigadista: u.Nome, Resultado: nc.length ? 'NC' : 'OK', ItensNC: nc.join('; '), Observacao: obs,
+    Detalhe: JSON.stringify({ itens: Object.fromEntries(itens.map((t, i) => [t, respostas[i]])), origem: 'QR', lidoEm: new Date(leitura.em).toISOString(), duplaBrigadista: minhaDupla() }),
+    Token: leitura.token, // o banco confere com o código da etiqueta; não é gravado
+  };
+  leitura = null; // cada leitura vale para um checklist
+  const { enviado, recusado } = await salvarRegistro(reg);
+  atualizarBanner();
+  if (recusado) return render('Recusado', `
+    <div class="card ok-msg">
+      <span class="chip vermelho">${ico('x')}</span>
+      <h2>Checklist não aceito</h2>
+      <p class="muted" style="margin:0">O QR Code lido não confere com a etiqueta atual de <b>${esc(eq.Codigo)}</b>. A etiqueta pode ter sido trocada. Leia a etiqueta do equipamento de novo ou avise o coordenador.</p>
+    </div>
+    <button class="btn btn-scan" onclick="ir('ler')">${ico('scan')}<span><b>Ler QR Code</b><small>Tentar de novo</small></span></button>`);
+  render('Salvo', `
+    <div class="card ok-msg">
+      <span class="chip ${nc.length ? 'vermelho' : 'verde'}">${ico(nc.length ? 'alerta' : 'ok')}</span>
+      <h2>${nc.length ? 'Salvo com problema' : 'Checklist salvo!'}</h2>
+      <p style="margin:0"><b>${esc(eq.Codigo)}</b> · ${esc(eq.Local)}</p>
+      ${nc.length ? `<p class="muted">Problemas: ${esc(nc.join('; '))}</p>` : ''}
+      ${!enviado ? '<p class="aviso">Sem internet: ficou salvo no celular e será enviado automaticamente.</p>' : ''}
+    </div>
+    <button class="btn btn-scan" onclick="ir('ler')">${ico('scan')}<span><b>Próximo equipamento</b><small>Ler outro QR Code</small></span></button>
+    <div class="grade2">
+      <button class="btn sec" onclick="ir('meus')">${ico('lista')} Meus</button>
+      <button class="btn sec" onclick="ir('')">${ico('inicio')} Início</button>
+    </div>`);
+}
+
+/* ---------- Meus equipamentos ---------- */
+function telaMeus() {
+  const u = usuario(), mes = mesAtual();
+  const ordem = { pend: 0, nc: 1, ok: 2 };
+  const meus = equipamentos().filter(e => minhaDupla() && duplaDe(e) === minhaDupla())
+    .map(e => ({ e, s: statusEq(e.Codigo, mes) }))
+    .sort((a, b) => (ordem[a.s.st] - ordem[b.s.st]) || a.e.Codigo.localeCompare(b.e.Codigo));
+  const r = resumo(meus.map(x => x.e), mes);
+  // agrupa por setor (localização); setores com pendência aparecem primeiro
+  const grupos = setoresDaDupla(minhaDupla()).map(nome => ({ nome, itens: meus.filter(x => setorDe(x.e) === nome) }))
+    .filter(g => g.itens.length)
+    .sort((a, b) => (b.itens.filter(x => x.s.st === 'pend').length > 0) - (a.itens.filter(x => x.s.st === 'pend').length > 0) || ordenaPt(a.nome, b.nome));
+  render('Meus equipamentos', `
+    <div class="card">
+      <div class="linha" style="justify-content:space-between"><h2 style="margin:0">Dupla ${esc(minhaDupla() || '—')}</h2><span class="muted">${nomeMes(mes)}</span></div>
+      <div class="muted" style="margin-top:4px">${grupos.length} setor(es) · ${r.total} equipamentos · checklist só lendo o QR no local</div>
+      <div class="linha" style="justify-content:space-between;margin:10px 0 6px"><span>${r.feitos} de ${r.total} feitos</span><b>${r.pct}%</b></div>
+      <div class="barra"><i style="width:${r.pct}%"></i></div>
+    </div>
+    ${grupos.map(g => { const rg = resumo(g.itens.map(x => x.e), mes); return `
+    <div class="card" style="padding-top:12px;padding-bottom:6px">
+      <div class="linha" style="justify-content:space-between;gap:8px"><b style="flex:1;min-width:0">${esc(g.nome)}</b><span class="tag ${rg.pend ? 'pend' : rg.nc ? 'nc' : 'ok'}">${rg.feitos}/${rg.total}</span></div>
+      <ul class="lista">${g.itens.map(({ e, s }) => `<li><a class="lin" href="#/eq/${encodeURIComponent(e.Codigo)}">
+        <span class="chip ${s.st === 'ok' ? 'verde' : s.st === 'nc' ? 'vermelho' : 'ambar'}">${iconeDe(e)}</span>
+        <span class="info"><b>${esc(e.Codigo)}</b><small>${esc(nomeTipo(e))}</small></span>${tagStatus(s)}</a></li>`).join('')}</ul>
+    </div>`; }).join('')}
+    ${meus.length ? '' : '<div class="card"><p class="muted" style="margin:0">Nenhum setor atribuído à sua dupla. Avise o coordenador da brigada.</p></div>'}`);
+}
+
+/* ---------- Início do app ---------- */
+document.getElementById('btn-voltar').innerHTML = ico('voltar');
+document.getElementById('btn-sync').innerHTML = ico('sync');
+window.addEventListener('hashchange', rota);
+window.addEventListener('online', () => sincronizar());
+(async () => {
+  await carregar();
+  atualizarBanner();
+  rota();
+  enviarFila().then(atualizarBanner);
+})();
+</script>
+</body>
+</html>
