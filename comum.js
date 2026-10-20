@@ -4,13 +4,13 @@
    CONFIGURAÇÃO — dados do projeto Supabase (veja LEIAME.md).
    Supabase › Project Settings › API:
      SUPABASE_URL = "Project URL"
-     SUPABASE_KEY = chave "anon public" (é pública por natureza: a segurança fica nas funções do banco).
+     SUPABASE_KEY = chave "publishable" (ou a antiga "anon public"). É pública por natureza: a segurança fica nas funções do banco.
    NUNCA cole aqui a chave "service_role".
    Vazio = modo demonstração (dados só no aparelho).
    ================================================================= */
 const CONFIG = {
-  SUPABASE_URL: '',
-  SUPABASE_KEY: '',
+  SUPABASE_URL: 'https://paueyalgozwchzrkgfoq.supabase.co',
+  SUPABASE_KEY: 'sb_publishable_7sOItl5WFPfx9mtN9NLy2g_7FNqHCNE',
   EMPRESA: 'Dois Marcos Sementes',
   PIN_DEMO: '1234', // PIN da gestão no modo demonstração (com Supabase, vale o PIN definido no banco)
 };
@@ -190,7 +190,9 @@ async function gerarQRs(raiz = document) {
 
 /* ---------------- Dados: carregar / salvar ---------------- */
 /* Supabase: leitura pelas visões v_* e gravação pelas funções do banco (supabase/schema.sql) */
-const SB_HEADERS = () => ({ apikey: CONFIG.SUPABASE_KEY, Authorization: 'Bearer ' + CONFIG.SUPABASE_KEY, 'Content-Type': 'application/json' });
+// Chave nova (sb_publishable_…) vai só em "apikey"; a antiga (anon, JWT "eyJ…") também em Authorization.
+const SB_HEADERS = () => ({ apikey: CONFIG.SUPABASE_KEY, 'Content-Type': 'application/json',
+  ...(CONFIG.SUPABASE_KEY.startsWith('eyJ') ? { Authorization: 'Bearer ' + CONFIG.SUPABASE_KEY } : {}) });
 const RPC = { registrar: 'registrar', pin: 'admin_pin', setorDupla: 'definir_setor_dupla', brigadista: 'salvar_brigadista', tokens: 'tokens', novoToken: 'novo_token' };
 
 async function api(corpo) {
