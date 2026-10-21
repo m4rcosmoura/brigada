@@ -11,40 +11,61 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="estilo.css">
 <style>
-  /* Específico do app de celular */
-  .btn-scan { min-height: 132px; justify-content: flex-start; gap: 18px; padding: 20px 22px; text-align: left; position: relative; overflow: hidden; }
-  .btn-scan .ic { width: 58px; height: 58px; }
-  .btn-scan b { display: block; font-size: 1.5rem; font-weight: 800; }
-  .btn-scan small { display: block; font-weight: 500; opacity: .85; font-size: .9rem; }
+  /* Específico do app de celular. Textos de botão nunca quebram linha: cortam com "…" */
+  .btn, .item .opc button { white-space: nowrap; }
+  .corta { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* Tela inicial: ocupa exatamente a altura da tela, sem rolagem */
+  body.tela-inicio { height: 100vh; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+  body.tela-inicio main { flex: 1; min-height: 0; width: 100%; display: flex; flex-direction: column; padding-bottom: max(16px, env(safe-area-inset-bottom)); }
+  .inicio { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 12px; }
+  .inicio > * { margin: 0; flex: none; }
+  .inicio .hero { padding: 14px 16px; }
+  .hero-topo { display: flex; align-items: center; gap: 12px; }
+  .hero-txt { flex: 1; min-width: 0; }
+  .hero-txt .nome { font-size: 1.1rem; font-weight: 800; }
+  .hero-rodape { display: flex; align-items: center; gap: 10px; margin-top: 10px; font-size: .85rem; }
+  .hero-rodape .corta { flex: 1; }
+  .hero-rodape .btn { flex: none; width: auto; margin: 0; min-height: 38px; padding: 6px 12px; font-size: .85rem; }
+  .inicio .btn-scan { flex: 1 1 auto; min-height: 96px; }
+
+  .btn-scan { min-height: 120px; justify-content: flex-start; gap: 16px; padding: 18px 20px; text-align: left; position: relative; overflow: hidden; }
+  .btn-scan .ic { width: 52px; height: 52px; }
+  .btn-scan > span { min-width: 0; }
+  .btn-scan b { display: block; font-size: 1.4rem; font-weight: 800; }
+  .btn-scan small { display: block; font-weight: 500; opacity: .85; font-size: .88rem; overflow: hidden; text-overflow: ellipsis; }
   .btn-scan::after { content: ""; position: absolute; right: -30px; top: -30px; width: 140px; height: 140px; border-radius: 50%; background: rgba(255,255,255,.08); }
-  .btn-meus { min-height: 76px; justify-content: flex-start; text-align: left; }
-  .btn-meus .tag { margin-left: auto; }
-  .nomes .btn { justify-content: flex-start; text-align: left; min-height: 60px; font-size: 1rem; margin-bottom: 8px; font-weight: 600; }
-  .nomes .btn small { margin-left: auto; font-weight: 500; color: var(--muted); white-space: nowrap; }
-  .ativo-card .topo-eq { display: flex; gap: 14px; align-items: center; }
-  .ativo-card .topo-eq .chip { width: 54px; height: 54px; border-radius: 14px; background: var(--red); color: #fff; }
-  .ativo-card .topo-eq .chip .ic { width: 30px; height: 30px; }
-  .ativo-card .cod { font-size: 1.6rem; font-weight: 800; line-height: 1.1; }
-  .ativo-card dl { margin: 16px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 9px 14px; font-size: .92rem; }
-  .ativo-card dt { color: #a7adb8; }
-  .ativo-card dd { margin: 0; text-align: right; font-weight: 600; }
-  .item { border: 1px solid var(--line); border-radius: var(--raio); padding: 14px; margin-bottom: 10px; background: #fff; box-shadow: var(--sombra); }
+  .btn-meus { min-height: 64px; justify-content: flex-start; text-align: left; }
+  .btn-meus .tag { margin-left: auto; flex: none; }
+  .btn-meus > .corta { flex: 1; text-align: left; }
+  .nomes .btn { justify-content: flex-start; text-align: left; min-height: 56px; font-size: .95rem; margin-bottom: 8px; font-weight: 600; }
+  .nomes .btn small { margin-left: auto; font-weight: 500; color: var(--muted); flex: none; }
+
+  /* Checklist compacto */
+  .ativo-card { padding: 14px 16px; }
+  .ativo-card .topo-eq { display: flex; gap: 12px; align-items: center; }
+  .ativo-card .topo-eq .chip { width: 44px; height: 44px; border-radius: 12px; background: var(--red); color: #fff; }
+  .ativo-card .topo-eq .chip .ic { width: 24px; height: 24px; }
+  .ativo-card .cod { font-size: 1.3rem; font-weight: 800; line-height: 1.1; }
+  .ativo-card .fatos { margin-top: 10px; font-size: .85rem; display: grid; gap: 4px; }
+  .ativo-card .fatos div { display: flex; gap: 8px; align-items: center; min-width: 0; }
+  .ativo-card .fatos .ic { width: 15px; height: 15px; color: #a7adb8; }
+  .item { border: 1px solid var(--line); border-radius: var(--raio); padding: 11px 12px; margin-bottom: 8px; background: #fff; box-shadow: var(--sombra); }
   .item.ok { border-color: var(--green); box-shadow: inset 4px 0 0 var(--green), var(--sombra); }
   .item.nc { border-color: var(--red); box-shadow: inset 4px 0 0 var(--red), var(--sombra); background: #fffafa; }
-  .item p { margin: 0 0 12px; font-weight: 600; display: flex; gap: 10px; }
+  .item p { margin: 0 0 9px; font-weight: 600; font-size: .93rem; display: flex; gap: 8px; }
   .item p .n { color: var(--muted); font-variant-numeric: tabular-nums; }
   .item.na { border-color: #9aa3af; box-shadow: inset 4px 0 0 #9aa3af, var(--sombra); background: #fafafa; }
-  .item .opc { display: grid; grid-template-columns: 1fr 1fr 0.62fr; gap: 8px; }
-  .item .opc button { min-height: 58px; font: inherit; font-size: .98rem; font-weight: 700; border-radius: 11px; border: 1.5px solid var(--line); background: #f8f9fb; color: var(--txt); display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; padding: 4px; line-height: 1.15; text-align: center; }
-  .item .opc button .ic { width: 18px; height: 18px; }
+  .item .opc { display: grid; grid-template-columns: 1fr 1.3fr .62fr; gap: 6px; }
+  .item .opc button { min-height: 48px; font: inherit; font-size: .88rem; font-weight: 700; border-radius: 10px; border: 1.5px solid var(--line); background: #f8f9fb; color: var(--txt); display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0 4px; overflow: hidden; text-overflow: ellipsis; }
   .item.ok .opc .b-ok { background: var(--green); border-color: var(--green); color: #fff; }
   .item.nc .opc .b-nc { background: var(--red); border-color: var(--red); color: #fff; }
   .item.na .opc .b-na { background: #6b7280; border-color: #6b7280; color: #fff; }
-  .item .obs-item { margin-top: 10px; min-height: 46px; }
+  .item .obs-item { margin-top: 8px; min-height: 42px; padding: 9px 12px; font-size: .9rem; }
   .extras { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .extras > div, .extras input { min-width: 0; }
-  .extras input { padding: 10px 8px; }
-  .extras label { font-weight: 600; font-size: .9rem; display: block; margin-bottom: 4px; }
+  .extras input { padding: 8px; min-height: 44px; font-size: .9rem; }
+  .extras label { font-weight: 600; font-size: .8rem; display: block; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .ok-msg { text-align: center; padding: 34px 18px; }
   .ok-msg .chip { width: 76px; height: 76px; border-radius: 50%; margin-bottom: 10px; }
   .ok-msg .chip .ic { width: 40px; height: 40px; }
@@ -114,6 +135,7 @@ function rota() {
   window.scrollTo(0, 0);
 }
 function render(titulo, html) {
+  document.body.classList.remove('tela-inicio');
   document.getElementById('titulo').textContent = titulo;
   document.getElementById('app').innerHTML = html;
 }
@@ -141,7 +163,7 @@ function telaQuem() {
     </div>
     <div class="nomes" id="nomes">
       ${lista.map(b => `<button type="button" class="btn sec" data-n="${esc(semAcento(b.Nome))}" onclick="escolherUsuario(${S.brigadistas.indexOf(b)})">
-        ${esc(b.Nome)} <small>${b.Dupla ? 'Dupla ' + esc(b.Dupla) : esc(b.Setor)}</small></button>`).join('')}
+        <span class="corta">${esc(b.Nome)}</span> <small>${b.Dupla ? 'Dupla ' + esc(b.Dupla) : esc(b.Setor)}</small></button>`).join('')}
       ${lista.length ? '' : `<div class="card"><b>Nenhum brigadista carregado.</b><p class="muted">Verifique a internet e toque em atualizar no topo. Se continuar, avise o coordenador.</p></div>`}
     </div>`);
 }
@@ -167,22 +189,25 @@ function telaInicio() {
   const r = resumo(meus, mesAtual());
   const parceiro = membrosDupla(minhaDupla()).filter(b => b.Nome !== u.Nome).map(b => primeiroNome(b.Nome)).join(', ');
   render('Brigada', `
-    <div class="card escuro">
-      <div class="donut-wrap" style="gap:16px">
-        <div style="flex:1;min-width:170px">
-          <div class="muted">Olá,</div>
-          <h2 style="margin:0 0 4px;font-size:1.3rem">${esc(u.Nome)}</h2>
-          <div class="muted">${minhaDupla() ? 'Dupla ' + esc(minhaDupla()) + (parceiro ? ' · com ' + esc(parceiro) : '') : 'Sem dupla definida'}</div>
-          <button class="btn peq escuro" style="margin-top:12px" onclick="sair()">${ico('sair')} Não sou eu</button>
+    <div class="inicio">
+      <div class="card escuro hero">
+        <div class="hero-topo">
+          <div class="hero-txt">
+            <div class="muted">Olá,</div>
+            <b class="nome corta">${esc(u.Nome)}</b>
+            <span class="muted corta">${minhaDupla() ? 'Dupla ' + esc(minhaDupla()) + (parceiro ? ' · com ' + esc(parceiro) : '') : 'Sem dupla definida'}</span>
+          </div>
+          ${meus.length ? donut([{ v: r.ok, cor: COR.ok }, { v: r.nc, cor: COR.nc }], r.pct + '%', 'feito', 84, 'rgba(255,255,255,.14)') : ''}
         </div>
-        ${meus.length ? donut([{ v: r.ok, cor: COR.ok }, { v: r.nc, cor: COR.nc }], r.pct + '%', 'feito', 116, 'rgba(255,255,255,.14)') : ''}
+        <div class="hero-rodape">
+          <span class="corta">${meus.length ? `<b>${MESES[+mesAtual().split('-')[1] - 1]}</b> · ${r.feitos}/${r.total} · ${r.pend ? `<span style="color:#f5b94a">faltam ${r.pend}</span>` : '<span style="color:#5fd39f">tudo feito ✔</span>'}` : 'Nenhum equipamento na sua dupla'}</span>
+          <button class="btn escuro" onclick="sair()">${ico('sair')} Não sou eu</button>
+        </div>
       </div>
-      ${meus.length ? `<div style="margin-top:14px;font-size:.92rem"><b>${nomeMes(mesAtual())}</b> · ${r.feitos} de ${r.total} feitos ·
-        ${r.pend ? `<span style="color:#f5b94a">faltam ${r.pend}</span>` : '<span style="color:#5fd39f">tudo feito ✔</span>'}</div>`
-      : '<p class="muted" style="margin-bottom:0">Nenhum equipamento atribuído à sua dupla ainda.</p>'}
-    </div>
-    <button class="btn btn-scan" onclick="ir('ler')">${ico('scan')}<span><b>Ler QR Code</b><small>Aponte para a etiqueta do equipamento</small></span></button>
-    <button class="btn sec btn-meus" onclick="ir('meus')"><span class="chip ambar">${ico('lista')}</span>Meus equipamentos${r.pend ? `<span class="tag pend">${r.pend} pendentes</span>` : ''}</button>`);
+      <button class="btn btn-scan" onclick="ir('ler')">${ico('scan')}<span><b>Ler QR Code</b><small>Aponte para a etiqueta</small></span></button>
+      <button class="btn sec btn-meus" onclick="ir('meus')"><span class="chip ambar">${ico('lista')}</span><span class="corta">Meus equipamentos</span>${r.pend ? `<span class="tag pend">${r.pend}</span>` : ''}</button>
+    </div>`);
+  document.body.classList.add('tela-inicio');
 }
 
 /* ---------- Leitor de QR ---------- */
@@ -243,47 +268,43 @@ function telaChecklist(cod) {
     .map(detalheDe).find(d => d.extras);
   const anteriores = (ultimoComExtras && ultimoComExtras.extras) || {};
   render(eq.Codigo, `
-    <div class="card escuro ativo-card">
-      <div class="topo-eq">
-        <span class="chip">${iconeDe(eq)}</span>
-        <div style="min-width:0"><div class="cod">${esc(eq.Codigo)}</div><div class="muted">${esc(nomeTipo(eq))}</div></div>
-      </div>
-      <dl>
-        <dt>Setor (local)</dt><dd>${esc(eq.Local)}${eq.Grupo ? '<br><span class="muted">' + esc(eq.Grupo) + '</span>' : ''}</dd>
-        <dt>Responsável</dt><dd>${duplaDe(eq) ? 'Dupla ' + esc(duplaDe(eq)) + ' · ' + esc(nomesDupla(duplaDe(eq))) : 'Sem dupla'}</dd>
-        <dt>Último checklist</dt><dd>${st.reg ? fmtData(st.reg.DataHora) + ' · ' + esc(primeiroNome(st.reg.Brigadista)) : '—'}</dd>
-        <dt>Status do mês</dt><dd>${tagStatus(st)}</dd>
-      </dl>
-      ${outraDupla ? `<div class="aviso">Este equipamento é da dupla ${esc(duplaDe(eq))}. Você pode fazer mesmo assim.</div>` : ''}
-    </div>
+    ${cartaoEquip(eq, st, true)}
+    ${outraDupla ? `<div class="aviso" style="margin:-4px 0 12px">Este equipamento é da dupla ${esc(duplaDe(eq))}. Você pode fazer mesmo assim.</div>` : ''}
     ${extras.length ? `<div class="card"><div class="extras">${extras.map(c => `<div><label for="ex-${c.id}">${esc(c.rotulo)}</label>
       <input type="${c.tipo}" id="ex-${c.id}" value="${esc(anteriores[c.id] || '')}"></div>`).join('')}</div>
       ${Object.keys(anteriores).length ? '<p class="muted" style="margin:8px 0 0;font-size:.82rem">Preenchido com o último checklist. Corrija se mudou.</p>' : ''}</div>` : ''}
     <button class="btn verde" onclick="marcarTodos()">${ico('ok')} Tudo conforme</button>
     <div id="itens">
       ${itens.map((t, i) => `<div class="item" id="it${i}"><p><span class="n">${String(i + 1).padStart(2, '0')}</span>${esc(t)}</p>
-        <div class="opc"><button class="b-ok" onclick="resp(${i},'ok')">${ico('ok')} Conforme</button><button class="b-nc" onclick="resp(${i},'nc')">${ico('x')} Não conforme</button><button class="b-na" onclick="resp(${i},'na')">N.A.</button></div>
+        <div class="opc"><button class="b-ok" onclick="resp(${i},'ok')">Conforme</button><button class="b-nc" onclick="resp(${i},'nc')">Não conforme</button><button class="b-na" onclick="resp(${i},'na')">N.A.</button></div>
         <input class="obs-item" id="obs${i}" placeholder="Observação deste item" hidden></div>`).join('')}
     </div>
     <div class="card">
       <label class="campo" for="obs" style="margin-top:0">Observações / ações necessárias</label>
       <textarea id="obs" placeholder="Opcional"></textarea>
     </div>
-    <button class="btn" style="min-height:70px;font-size:1.2rem" id="btn-salvar" onclick="salvarChecklist('${esc(eq.Codigo)}')">${ico('salvar')} Salvar checklist</button>`);
+    <button class="btn" style="min-height:64px;font-size:1.1rem" id="btn-salvar" onclick="salvarChecklist('${esc(eq.Codigo)}')">${ico('salvar')} Salvar checklist</button>`);
+}
+/* Cartão escuro do equipamento: uma informação por linha, sem quebrar (texto longo termina em "…") */
+function cartaoEquip(eq, st, completo) {
+  const d = duplaDe(eq);
+  return `<div class="card escuro ativo-card">
+    <div class="topo-eq">
+      <span class="chip">${iconeDe(eq)}</span>
+      <div style="flex:1;min-width:0"><div class="cod corta">${esc(eq.Codigo)}</div><div class="muted corta">${esc(nomeTipo(eq))}</div></div>
+      ${tagStatus(st)}
+    </div>
+    <div class="fatos">
+      <div>${ico('pin')}<span class="corta">${esc(eq.Local)}${eq.Grupo && eq.Grupo !== eq.Local ? ' · ' + esc(eq.Grupo) : ''}</span></div>
+      ${completo ? `<div>${ico('equipe')}<span class="corta">${d ? 'Dupla ' + esc(d) + ' · ' + esc(nomesDupla(d)) : 'Sem dupla'}</span></div>
+      <div>${ico('relogio')}<span class="corta">${st.reg ? 'Último: ' + fmtData(st.reg.DataHora) + ' · ' + esc(primeiroNome(st.reg.Brigadista)) : 'Nenhum checklist este mês'}</span></div>` : ''}
+    </div>
+  </div>`;
 }
 /* Sem leitura válida do QR: mostra só as informações e manda ler a etiqueta no local */
 function telaPrecisaLer(eq, st) {
   render(eq.Codigo, `
-    <div class="card escuro ativo-card">
-      <div class="topo-eq">
-        <span class="chip">${iconeDe(eq)}</span>
-        <div style="min-width:0"><div class="cod">${esc(eq.Codigo)}</div><div class="muted">${esc(nomeTipo(eq))}</div></div>
-      </div>
-      <dl>
-        <dt>Setor (local)</dt><dd>${esc(eq.Local)}</dd>
-        <dt>Status do mês</dt><dd>${tagStatus(st)}</dd>
-      </dl>
-    </div>
+    ${cartaoEquip(eq, st, false)}
     <div class="card ok-msg" style="padding:24px 18px">
       <span class="chip ambar">${ico('scan')}</span>
       <h2>Vá até o equipamento</h2>

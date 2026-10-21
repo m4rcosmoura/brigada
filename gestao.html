@@ -174,8 +174,6 @@ function telaPainel() {
   const eqs = equipamentos().filter(e => !painelCat || e.Categoria === painelCat);
   const r = resumo(eqs, mes);
   const cats = categorias();
-  const ncs = S.registros.filter(x => mesReg(x) === mes && statusEq(x.Codigo, mes).reg === x && x.Resultado === 'NC')
-    .filter(x => !painelCat || x.Categoria === painelCat).sort((a, b) => b.DataHora.localeCompare(a.DataHora));
   const hist = [5, 4, 3, 2, 1, 0].map(k => { const m = mesAnterior(mes, k); return { m, ...resumo(eqs, m) }; });
   const porDupla = duplas().map(d => ({ d, ...resumo(eqs.filter(e => duplaDe(e) === d), mes) }));
   const setoresSem = nomesSetores().filter(n => !(setorPorNome(n) || {}).Dupla);
@@ -210,11 +208,7 @@ function telaPainel() {
       </div>
       <div class="card">
         <h3>Últimos 6 meses — % realizado</h3>
-        <div class="hist">${hist.map((h, i) => `<div class="${i === 5 ? 'atual' : ''}"><b>${h.pct}%</b><i style="height:${Math.max(h.pct, 1)}%"></i>${MESES[+h.m.split('-')[1] - 1].slice(0, 3)}</div>`).join('')}</div>
-        <h3 style="margin-top:20px">Problemas em aberto (${ncs.length})</h3>
-        ${ncs.length ? `<ul class="lista">${ncs.slice(0, 5).map(x => `<li><div class="lin"><span class="chip vermelho">${ico('alerta')}</span><span class="info"><b>${esc(x.Codigo)} · ${esc(x.Local)}</b>
-          <small>${esc(x.ItensNC)}</small><small>“${esc(x.Observacao)}” — ${esc(primeiroNome(x.Brigadista))}, ${fmtData(x.DataHora)}</small></span></div></li>`).join('')}</ul>
-          ${ncs.length > 5 ? `<a href="#/historico" onclick="histF.res='NC';histF.mes='${mes}'">Ver todos os ${ncs.length} →</a>` : ''}` : '<p class="muted">Nenhum problema registrado no mês.</p>'}
+        <div class="hist" style="height:220px">${hist.map((h, i) => `<div class="${i === 5 ? 'atual' : ''}"><b>${h.pct}%</b><i style="height:${Math.max(h.pct, 1)}%"></i>${MESES[+h.m.split('-')[1] - 1].slice(0, 3)}</div>`).join('')}</div>
       </div>
     </div>
     <div class="card">
@@ -246,7 +240,7 @@ function exportarCSV(mes, lista) {
 }
 
 /* ---------- Setores: dupla responsável por setor ---------- */
-let setF = { q: '', dupla: '' }, setSel = new Set(), duplaAlvo = '';
+let setF = { q: '', dupla: '' };
 function telaSetores() {
   const mes = mesAtual(), q = setF.q.toLowerCase();
   const linhas = nomesSetores().map(nome => {
@@ -255,7 +249,6 @@ function telaSetores() {
   }).filter(x => (!q || x.nome.toLowerCase().includes(q))
     && (!setF.dupla || (setF.dupla === 'sem' ? !x.dupla : x.dupla === setF.dupla)));
   const semDupla = nomesSetores().filter(n => !(setorPorNome(n) || {}).Dupla).length;
-  const todos = linhas.length && linhas.every(x => setSel.has(x.nome));
   render(`
     <div class="titulo-pag"><h2>Setores</h2><div class="muted">O setor é a <b>Localização</b> do equipamento. Cada setor tem uma dupla, que faz o checklist de <b>todos</b> os equipamentos daquela localização. Trocou a dupla aqui, todos os equipamentos do setor mudam junto.</div></div>
     <div class="kpis" style="grid-template-columns:repeat(3,1fr)">
@@ -272,32 +265,13 @@ function telaSetores() {
     </div>
     <div class="card" style="padding:0;overflow:hidden">
       <div class="tbl-scroll tbl-alta"><table>
-        <tr><th style="width:36px"><input type="checkbox" ${todos ? 'checked' : ''} onchange="marcarSetores(this.checked)" title="Marcar todos os filtrados"></th><th>Setor (localização)</th><th>Equipamentos</th><th style="min-width:290px">Dupla responsável</th><th style="min-width:110px">${nomeMes(mes)}</th><th>Situação</th></tr>
-        ${linhas.map(x => `<tr><td><input type="checkbox" class="sel-setor" value="${esc(x.nome)}" ${setSel.has(x.nome) ? 'checked' : ''} onchange="this.checked?setSel.add(this.value):setSel.delete(this.value);contarSetores()"></td>
-          <td><b>${esc(x.nome)}</b></td><td class="muted"><a href="#/equipamentos" onclick="eqF={q:'',cat:'',dupla:'',st:'',setor:${js(x.nome)}}">${qtdTipos(x.eqs)}</a></td>
+        <tr><th>Setor (localização)</th><th>Equipamentos</th><th style="min-width:290px">Dupla responsável</th><th style="min-width:110px">${nomeMes(mes)}</th><th>Situação</th></tr>
+        ${linhas.map(x => `<tr><td><b>${esc(x.nome)}</b></td><td class="muted"><a href="#/equipamentos" onclick="eqF={q:'',cat:'',dupla:'',st:'',setor:${js(x.nome)}}">${qtdTipos(x.eqs)}</a></td>
           <td>${selDupla(x.dupla, `mudarDuplaSetores([${js(x.nome)}], this.value)`)}</td>
           <td><div class="barra"><i style="width:${x.pct}%"></i></div><small class="muted">${x.feitos}/${x.total}</small></td><td>${situacao(x)}</td></tr>`).join('')}
       </table>${linhas.length ? '' : '<p class="muted" style="padding:16px">Nenhum setor encontrado.</p>'}</div>
     </div>
-    <div class="acoes">
-      <b id="n-set">${setSel.size} setor(es) marcado(s)</b>
-      <span>→ dupla</span>
-      ${selDupla(duplaAlvo, 'duplaAlvo=this.value', 'id="dupla-setores"')}
-      <button class="btn verde peq" onclick="aplicarDuplaSetores()">${ico('ok')} Aplicar aos marcados</button>
-      <button class="btn escuro peq" onclick="setSel.clear();telaSetores()">Limpar marcação</button>
-      <span class="muted" style="color:#a7adb8;margin-left:auto">Novo equipamento? Cadastre no Supabase (tabela equipamentos) com a localização; o setor aparece aqui sozinho.</span>
-    </div>`);
-}
-function contarSetores() { document.getElementById('n-set').textContent = setSel.size + ' setor(es) marcado(s)'; }
-function marcarSetores(v) {
-  document.querySelectorAll('.sel-setor').forEach(c => { c.checked = v; v ? setSel.add(c.value) : setSel.delete(c.value); });
-  contarSetores();
-}
-function aplicarDuplaSetores() {
-  if (!setSel.size) return toast('Marque pelo menos um setor');
-  const lista = [...setSel];
-  setSel.clear();
-  mudarDuplaSetores(lista, document.getElementById('dupla-setores').value);
+    <p class="muted">Novo equipamento? Cadastre no Supabase (tabela equipamentos) com a localização; o setor aparece aqui sozinho.</p>`);
 }
 function mudarDuplaSetores(setores, dupla) {
   alterar('setorDupla', { setores, dupla }, d => {
@@ -341,7 +315,7 @@ function telaDuplas() {
             ${ativos.filter(b => String(b.Dupla) !== d).map(b => `<option value="${esc(b.Nome)}">${esc(b.Nome)}${b.Dupla ? ' (sai da dupla ' + esc(b.Dupla) + ')' : ''}</option>`).join('')}</select></div>
           <div class="rotulo">Setores</div>
           <div class="pilulas">${setoresDaDupla(d).map(s => `<span class="pilula">${esc(s)} <button title="Tirar setor da dupla" onclick="mudarDuplaSetor(${js(s)},'')">${ico('x')}</button></span>`).join('') || '<span class="muted">Nenhum setor</span>'}</div>
-          <a class="btn sec peq" href="#/setores" onclick="setF={q:'',dupla:'sem'};duplaAlvo='${d}'">${ico('mais')} Adicionar setores à dupla ${esc(d)}</a>
+          <a class="btn sec peq" href="#/setores" onclick="setF={q:'',dupla:'sem'}">${ico('mais')} Adicionar setores à dupla ${esc(d)}</a>
         </div>`; }).join('')}
     </div>`);
 }
