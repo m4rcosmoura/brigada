@@ -4,8 +4,8 @@
   --red: #d6262f; --red-d: #a81c23; --red-l: #fdecec;
   --green: #0f7a52; --green-l: #e4f4ec;
   --amber: #d98a06; --amber-l: #fdf3df;
-  --bg: #eef0f3; --card: #fff; --txt: #161a21; --muted: #6b7280; --line: #e4e7eb;
-  --raio: 14px; --sombra: 0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.08);
+  --bg: #f1f2f6; --card: #fff; --txt: #161a21; --muted: #6b7280; --line: #e6e8ee;
+  --raio: 16px; --sombra: 0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.08);
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; background: var(--bg); color: var(--txt);
@@ -60,6 +60,15 @@ h3 { font-size: 1rem; margin: 0 0 12px; font-weight: 700; }
 .chip.ambar { background: var(--amber-l); color: var(--amber); }
 .chip.azul { background: #e7eefc; color: #2f5bd3; }
 .chip.escuro { background: var(--ink3); color: #fff; }
+
+/* ---------- ilustrações dos equipamentos ---------- */
+.ilus { width: var(--t, 48px); height: var(--t, 48px); border-radius: calc(var(--t, 48px) * .3); background: #fff3f1;
+  display: inline-flex; align-items: center; justify-content: center; flex: none; border: 2px solid #ffe1dc; }
+.ilus svg { width: 76%; height: 76%; display: block; }
+.ilus.ok { background: var(--green-l); border-color: #9fd9bd; }
+.ilus.nc { background: var(--red-l); border-color: #f3a3a7; }
+.ilus.pend { background: #fff8ea; border-color: #f4d79a; }
+.card.escuro .ilus { background: #fff; border-color: transparent; }
 
 /* ---------- status ---------- */
 .tag { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 99px; font-size: .78rem; font-weight: 600; white-space: nowrap; }
@@ -123,6 +132,8 @@ label.campo { display: block; font-weight: 600; margin: 12px 0 6px; }
 .qr { display: flex; justify-content: center; margin: 10px 0 4px; }
 .qr img, .qr canvas { width: 150px; height: 150px; }
 .etq b { font-size: 1.2rem; display: block; font-weight: 800; }
+.etq .etq-cod { display: flex; align-items: center; justify-content: center; gap: 8px; }
+.etq .etq-cod .ilus { border: 0; }
 .etq small { display: block; font-size: .72rem; line-height: 1.25; padding: 0 8px; }
 .etq .rod { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 6px 8px 8px; }
 .etq .rod img { height: 20px; }

@@ -103,7 +103,56 @@ const ICONES = {
 };
 const ico = (n, cls = '') => `<svg class="ic ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONES[n] || ''}</svg>`;
 const ESCUDO = '<svg viewBox="0 0 24 24"><path d="M12 2l8 3v6c0 5-3.5 9.5-8 11-4.5-1.5-8-6-8-11V5z" fill="#d6262f"/><path d="M12.2 7.2c1.6 1.9 3.1 3.2 3.1 5.5a3.3 3.3 0 0 1-6.6 0c0-1.3.6-2.2 1.4-2.9.1 1.1.7 1.7 1.3 1.7 0-1.7-.2-2.8.8-4.3z" fill="#fff"/></svg>';
-const nomeTipo = eq => String(eq.Tipo).toLowerCase().startsWith(String(eq.Categoria).toLowerCase()) ? eq.Tipo : eq.Categoria + ' ' + eq.Tipo;
+/* ---------------- Ilustrações coloridas dos equipamentos ---------------- */
+const ILUS = {
+  extintor: `<svg viewBox="0 0 64 64" aria-hidden="true">
+    <path d="M37 15c8 0 12 4 12 11v19c0 5-2 8-6 9" fill="none" stroke="#2f343c" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M42 53l5 5" stroke="#2f343c" stroke-width="5.5" stroke-linecap="round"/>
+    <path d="M21 10.5h15l5-3.5" fill="none" stroke="#5b6370" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="25.5" y="9" width="9" height="9" rx="2.5" fill="#7b8491"/>
+    <rect x="19" y="17" width="22" height="42" rx="10" fill="#e63946"/>
+    <rect x="22" y="21" width="5" height="33" rx="2.5" fill="#ff8f8f" opacity=".7"/>
+    <rect x="23" y="31" width="14" height="13" rx="3" fill="#fff"/>
+    <circle cx="30" cy="37.5" r="4" fill="none" stroke="#1f9d63" stroke-width="2"/>
+    <path d="M30 37.5l2.4-2.2" stroke="#1f9d63" stroke-width="2" stroke-linecap="round"/>
+  </svg>`,
+  abrigo: `<svg viewBox="0 0 64 64" aria-hidden="true">
+    <rect x="7" y="6" width="50" height="53" rx="8" fill="#e63946"/>
+    <rect x="7" y="6" width="50" height="10" rx="8" fill="#c8232f"/>
+    <rect x="22" y="9.5" width="20" height="3" rx="1.5" fill="#fff" opacity=".9"/>
+    <rect x="12" y="19" width="40" height="35" rx="4" fill="#fff1f0"/>
+    <circle cx="31" cy="36" r="12" fill="none" stroke="#e63946" stroke-width="4.5"/>
+    <circle cx="31" cy="36" r="5.5" fill="none" stroke="#e63946" stroke-width="4"/>
+    <path d="M42 41l5 8" stroke="#2f343c" stroke-width="3.5" stroke-linecap="round"/>
+    <rect x="47" y="34" width="3" height="9" rx="1.5" fill="#9aa3af"/>
+  </svg>`,
+  hidrante: `<svg viewBox="0 0 64 64" aria-hidden="true">
+    <rect x="17" y="54" width="30" height="6" rx="3" fill="#a61e27"/>
+    <rect x="29" y="5" width="6" height="7" rx="2" fill="#a61e27"/>
+    <path d="M19 26c0-8.5 5.8-14 13-14s13 5.5 13 14z" fill="#c8232f"/>
+    <rect x="21" y="26" width="22" height="29" fill="#e63946"/>
+    <rect x="24" y="29" width="4.5" height="23" rx="2.25" fill="#ff8f8f" opacity=".7"/>
+    <rect x="16" y="23.5" width="32" height="6" rx="3" fill="#a61e27"/>
+    <rect x="10" y="34" width="11" height="10" rx="2.5" fill="#c8232f"/>
+    <rect x="43" y="34" width="11" height="10" rx="2.5" fill="#c8232f"/>
+    <circle cx="32" cy="41" r="5.5" fill="#a61e27"/>
+    <circle cx="32" cy="41" r="2.2" fill="#ffb3b3"/>
+  </svg>`,
+  botoeira: `<svg viewBox="0 0 64 64" aria-hidden="true">
+    <rect x="11" y="8" width="42" height="48" rx="8" fill="#e63946"/>
+    <rect x="17" y="14" width="30" height="28" rx="5" fill="#fff"/>
+    <circle cx="32" cy="28" r="9" fill="#c8232f"/>
+    <circle cx="29.5" cy="25.5" r="3" fill="#ff8f8f"/>
+    <rect x="21" y="47" width="22" height="3.5" rx="1.75" fill="#fff" opacity=".85"/>
+  </svg>`,
+};
+const ilusTipo = eq => eq.Categoria === 'Extintor' ? 'extintor'
+  : eq.Tipo === 'Hidrante com abrigo' ? 'abrigo' : eq.Tipo === 'Acionamento manual' ? 'botoeira' : 'hidrante';
+/* Ilustração num "azulejo" arredondado; st (ok/nc/pend) colore a moldura conforme o status */
+const ilus = (eq, tam = 48, st = '') => `<span class="ilus ${st}" style="--t:${tam}px">${ILUS[ilusTipo(eq)]}</span>`;
+const ilusCat = (cat, tam = 40) => `<span class="ilus" style="--t:${tam}px">${ILUS[cat === 'Extintor' ? 'extintor' : 'hidrante']}</span>`;
+
+const nomeTipo = eq =>String(eq.Tipo).toLowerCase().startsWith(String(eq.Categoria).toLowerCase()) ? eq.Tipo : eq.Categoria + ' ' + eq.Tipo;
 const iconeDe = eq => ico(eq.Categoria === 'Hidrante' ? 'hidrante' : 'extintor');
 
 /* ---------------- Armazenamento (com reserva em memória) ----------------

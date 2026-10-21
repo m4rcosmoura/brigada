@@ -27,7 +27,21 @@
   .hero-rodape { display: flex; align-items: center; gap: 10px; margin-top: 10px; font-size: .85rem; }
   .hero-rodape .corta { flex: 1; }
   .hero-rodape .btn { flex: none; width: auto; margin: 0; min-height: 38px; padding: 6px 12px; font-size: .85rem; }
-  .inicio .btn-scan { flex: 1 1 auto; min-height: 96px; }
+  .inicio .btn-scan { flex: 1 1 auto; min-height: 96px; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 10px; }
+  .inicio .btn-scan .ic { width: clamp(44px, 12vh, 76px); height: clamp(44px, 12vh, 76px); }
+  .inicio .btn-scan b { font-size: 1.55rem; }
+  .cats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .cat { color: inherit; text-decoration: none; background: #fff; border: 1px solid var(--line); border-radius: var(--raio); box-shadow: var(--sombra); padding: 10px 12px;
+    display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .cat .info { flex: 1; min-width: 0; }
+  .cat .info span { display: block; font-size: .78rem; color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cat .info b { display: block; font-size: 1.15rem; font-weight: 800; line-height: 1.15; }
+  .cat .barra { height: 5px; margin-top: 5px; }
+  .destaque { position: relative; display: inline-block; margin-bottom: 12px; }
+  .destaque .selo { position: absolute; right: -8px; bottom: -8px; width: 36px; height: 36px; border-radius: 50%; color: #fff;
+    border: 3px solid #fff; display: flex; align-items: center; justify-content: center; box-shadow: var(--sombra); }
+  .destaque .selo .ic { width: 18px; height: 18px; }
+  .item p .ilus { margin-top: -2px; }
 
   .btn-scan { min-height: 120px; justify-content: flex-start; gap: 16px; padding: 18px 20px; text-align: left; position: relative; overflow: hidden; }
   .btn-scan .ic { width: 52px; height: 52px; }
@@ -62,10 +76,13 @@
   .item.nc .opc .b-nc { background: var(--red); border-color: var(--red); color: #fff; }
   .item.na .opc .b-na { background: #6b7280; border-color: #6b7280; color: #fff; }
   .item .obs-item { margin-top: 8px; min-height: 42px; padding: 9px 12px; font-size: .9rem; }
-  .extras { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .extras { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  .extras > div { display: flex; align-items: center; gap: 10px; }
+  .extras > div label { flex: 1; margin: 0; }
+  .extras > div input { flex: 0 0 165px; }
   .extras > div, .extras input { min-width: 0; }
   .extras input { padding: 8px; min-height: 44px; font-size: .9rem; }
-  .extras label { font-weight: 600; font-size: .8rem; display: block; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .extras label { font-weight: 600; font-size: .88rem; display: block; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .ok-msg { text-align: center; padding: 34px 18px; }
   .ok-msg .chip { width: 76px; height: 76px; border-radius: 50%; margin-bottom: 10px; }
   .ok-msg .chip .ic { width: 40px; height: 40px; }
@@ -157,7 +174,7 @@ function telaQuem() {
   const lista = S.brigadistas.filter(ativo).sort((a, b) => a.Nome.localeCompare(b.Nome));
   render('Brigada', `
     <div class="card escuro">
-      <h2 style="margin-bottom:4px">Quem é você?</h2>
+      <div class="linha" style="justify-content:space-between;flex-wrap:nowrap;margin-bottom:6px"><h2 style="margin:0">Quem é você?</h2><span style="display:flex;gap:6px">${ilusCat("Extintor", 40)}${ilus({ Categoria: "Hidrante", Tipo: "Hidrante com abrigo" }, 40)}${ilusCat("Hidrante", 40)}</span></div>
       <p class="muted" style="margin-top:0">Toque no seu nome. O app vai lembrar neste celular.</p>
       <input id="busca-nome" type="search" placeholder="Digite parte do nome…" oninput="filtrarNomes(this.value)" autocomplete="off">
     </div>
@@ -204,6 +221,9 @@ function telaInicio() {
           <button class="btn escuro" onclick="sair()">${ico('sair')} Não sou eu</button>
         </div>
       </div>
+      ${meus.length ? `<div class="cats">${['Extintor', 'Hidrante'].map(c => { const rc = resumo(meus.filter(e => e.Categoria === c), mesAtual());
+        return `<a class="cat" href="#/meus">${ilusCat(c, 44)}<div class="info"><span>${c === 'Extintor' ? 'Extintores' : 'Hidrantes'}</span><b>${rc.feitos}/${rc.total}</b>
+          <div class="barra"><i style="width:${rc.pct}%"></i></div></div></a>`; }).join('')}</div>` : ''}
       <button class="btn btn-scan" onclick="ir('ler')">${ico('scan')}<span><b>Ler QR Code</b><small>Aponte para a etiqueta</small></span></button>
       <button class="btn sec btn-meus" onclick="ir('meus')"><span class="chip ambar">${ico('lista')}</span><span class="corta">Meus equipamentos</span>${r.pend ? `<span class="tag pend">${r.pend}</span>` : ''}</button>
     </div>`);
@@ -290,7 +310,7 @@ function cartaoEquip(eq, st, completo) {
   const d = duplaDe(eq);
   return `<div class="card escuro ativo-card">
     <div class="topo-eq">
-      <span class="chip">${iconeDe(eq)}</span>
+      ${ilus(eq, 56)}
       <div style="flex:1;min-width:0"><div class="cod corta">${esc(eq.Codigo)}</div><div class="muted corta">${esc(nomeTipo(eq))}</div></div>
       ${tagStatus(st)}
     </div>
@@ -301,12 +321,17 @@ function cartaoEquip(eq, st, completo) {
     </div>
   </div>`;
 }
+/* Ilustração grande do equipamento com um selo (ok / nc / x / scan) */
+function destaque(eq, selo) {
+  const cfg = { ok: ['ok', 'var(--green)'], nc: ['alerta', 'var(--red)'], x: ['x', 'var(--red)'], scan: ['scan', 'var(--amber)'] }[selo];
+  return `<span class="destaque">${ilus(eq, 92)}<span class="selo" style="background:${cfg[1]}">${ico(cfg[0])}</span></span>`;
+}
 /* Sem leitura válida do QR: mostra só as informações e manda ler a etiqueta no local */
 function telaPrecisaLer(eq, st) {
   render(eq.Codigo, `
     ${cartaoEquip(eq, st, false)}
     <div class="card ok-msg" style="padding:24px 18px">
-      <span class="chip ambar">${ico('scan')}</span>
+      ${destaque(eq, "scan")}
       <h2>Vá até o equipamento</h2>
       <p class="muted" style="margin:0">Para fazer o checklist é obrigatório ler o QR Code da etiqueta, no local.${leitura && leitura.cod === eq.Codigo ? ' A leitura anterior expirou (vale ' + VALIDADE_LEITURA_MIN + ' min).' : ''}</p>
     </div>
@@ -351,14 +376,14 @@ async function salvarChecklist(cod) {
   atualizarBanner();
   if (recusado) return render('Recusado', `
     <div class="card ok-msg">
-      <span class="chip vermelho">${ico('x')}</span>
+      ${destaque(eq, 'x')}
       <h2>Checklist não aceito</h2>
       <p class="muted" style="margin:0">O QR Code lido não confere com a etiqueta atual de <b>${esc(eq.Codigo)}</b>. A etiqueta pode ter sido trocada. Leia a etiqueta do equipamento de novo ou avise o coordenador.</p>
     </div>
     <button class="btn btn-scan" onclick="ir('ler')">${ico('scan')}<span><b>Ler QR Code</b><small>Tentar de novo</small></span></button>`);
   render('Salvo', `
     <div class="card ok-msg">
-      <span class="chip ${nc.length ? 'vermelho' : 'verde'}">${ico(nc.length ? 'alerta' : 'ok')}</span>
+      ${destaque(eq, nc.length ? 'nc' : 'ok')}
       <h2>${nc.length ? 'Salvo com não conformidade' : 'Checklist salvo!'}</h2>
       <p style="margin:0"><b>${esc(eq.Codigo)}</b> · ${esc(eq.Local)}</p>
       ${nc.length ? `<p class="muted">Não conformidades: ${esc(nc.join('; '))}</p>` : ''}
@@ -386,7 +411,7 @@ function telaMeus() {
   render('Meus equipamentos', `
     <div class="card">
       <div class="linha" style="justify-content:space-between"><h2 style="margin:0">Dupla ${esc(minhaDupla() || '—')}</h2><span class="muted">${nomeMes(mes)}</span></div>
-      <div class="muted" style="margin-top:4px">${grupos.length} setor(es) · ${r.total} equipamentos · checklist só lendo o QR no local</div>
+      <div class="muted" style="margin-top:4px">${grupos.length} setor(es) · ${r.total} equipamentos</div>
       <div class="linha" style="justify-content:space-between;margin:10px 0 6px"><span>${r.feitos} de ${r.total} feitos</span><b>${r.pct}%</b></div>
       <div class="barra"><i style="width:${r.pct}%"></i></div>
     </div>
@@ -394,7 +419,7 @@ function telaMeus() {
     <div class="card" style="padding-top:12px;padding-bottom:6px">
       <div class="linha" style="justify-content:space-between;gap:8px"><b style="flex:1;min-width:0">${esc(g.nome)}</b><span class="tag ${rg.pend ? 'pend' : rg.nc ? 'nc' : 'ok'}">${rg.feitos}/${rg.total}</span></div>
       <ul class="lista">${g.itens.map(({ e, s }) => `<li><a class="lin" href="#/eq/${encodeURIComponent(e.Codigo)}">
-        <span class="chip ${s.st === 'ok' ? 'verde' : s.st === 'nc' ? 'vermelho' : 'ambar'}">${iconeDe(e)}</span>
+        ${ilus(e, 46, s.st)}
         <span class="info"><b>${esc(e.Codigo)}</b><small>${esc(nomeTipo(e))}</small></span>${tagStatus(s)}</a></li>`).join('')}</ul>
     </div>`; }).join('')}
     ${meus.length ? '' : '<div class="card"><p class="muted" style="margin:0">Nenhum setor atribuído à sua dupla. Avise o coordenador da brigada.</p></div>'}`);

@@ -204,7 +204,7 @@ function telaPainel() {
           </ul>
         </div>
         ${!painelCat ? cats.map(c => { const rc = resumo(equipamentos().filter(e => e.Categoria === c), mes);
-          return `<div style="margin-top:14px"><div class="linha" style="justify-content:space-between;margin-bottom:6px"><span style="font-weight:600">${esc(c)}</span><span class="muted">${rc.feitos}/${rc.total} · ${rc.pct}%</span></div><div class="barra"><i style="width:${rc.pct}%"></i></div></div>`; }).join('') : ''}
+          return `<div style="margin-top:14px"><div class="linha" style="justify-content:space-between;margin-bottom:6px"><span class="linha" style="gap:10px;flex-wrap:nowrap;font-weight:600">${ilusCat(c, 34)}${esc(c)}</span><span class="muted">${rc.feitos}/${rc.total} · ${rc.pct}%</span></div><div class="barra"><i style="width:${rc.pct}%"></i></div></div>`; }).join('') : ''}
       </div>
       <div class="card">
         <h3>Últimos 6 meses — % realizado</h3>
@@ -395,7 +395,7 @@ function telaEquipamentos() {
     <div class="card" style="padding:0;overflow:hidden">
       <div class="tbl-scroll tbl-alta"><table>
         <tr><th>Código</th><th>Tipo</th><th>Setor (localização)</th><th>Dupla</th><th>Status do mês</th><th>Último checklist</th></tr>
-        ${lista.map(({ e, s, d }) => `<tr><td><b>${esc(e.Codigo)}</b></td><td>${esc(nomeTipo(e))}</td><td>${esc(e.Local)}${e.Grupo ? ` <span class="muted">· ${esc(e.Grupo)}</span>` : ''}</td>
+        ${lista.map(({ e, s, d }) => `<tr><td><span class="linha" style="gap:10px;flex-wrap:nowrap">${ilus(e, 34, s.st)}<b>${esc(e.Codigo)}</b></span></td><td>${esc(nomeTipo(e))}</td><td>${esc(e.Local)}${e.Grupo ? ` <span class="muted">· ${esc(e.Grupo)}</span>` : ''}</td>
           <td>${d ? `<b>${esc(d)}</b> <span class="muted">${esc(nomesDupla(d))}</span>` : '<span class="tag cinza">Sem dupla</span>'}</td>
           <td>${tagStatus(s)}</td><td class="muted">${s.reg ? fmtData(s.reg.DataHora) + ' · ' + esc(primeiroNome(s.reg.Brigadista)) : '—'}</td></tr>`).join('')}
       </table>${lista.length ? '' : '<p class="muted" style="padding:16px">Nada encontrado.</p>'}</div>
@@ -426,7 +426,7 @@ function telaHistorico() {
     <div class="card" style="padding:0;overflow:hidden">
       <div class="tbl-scroll tbl-alta"><table>
         <tr><th>Data</th><th>Código</th><th>Setor / local</th><th>Dupla</th><th>Brigadista</th><th>Resultado</th><th>Problemas / observação</th></tr>
-        ${lista.map((r, i) => `<tr class="clic" onclick="verItens(this, ${i})"><td class="muted" style="white-space:nowrap">${fmtData(r.DataHora)}</td><td><b>${esc(r.Codigo)}</b></td><td>${r.Setor ? `<b>${esc(r.Setor)}</b><br>` : ''}<span class="muted">${esc(r.Local)}</span></td><td>${esc(r.Dupla || '—')}</td>
+        ${lista.map((r, i) => `<tr class="clic" onclick="verItens(this, ${i})"><td class="muted" style="white-space:nowrap">${fmtData(r.DataHora)}</td><td><span class="linha" style="gap:10px;flex-wrap:nowrap">${ilus({ Categoria: r.Categoria, Tipo: r.Tipo }, 30, r.Resultado === "OK" ? "ok" : "nc")}<b>${esc(r.Codigo)}</b></span></td><td>${r.Setor ? `<b>${esc(r.Setor)}</b><br>` : ''}<span class="muted">${esc(r.Local)}</span></td><td>${esc(r.Dupla || '—')}</td>
           <td>${esc(r.Brigadista)}</td><td>${r.Resultado === 'OK' ? '<span class="tag ok">Conforme</span>' : '<span class="tag nc">Não conforme</span>'}</td>
           <td>${r.ItensNC ? `<b style="color:var(--red)">${esc(r.ItensNC)}</b><br>` : ''}<span class="muted">${esc(r.Observacao)}</span></td></tr>`).join('')}
       </table>${lista.length ? '' : '<p class="muted" style="padding:16px">Nenhum checklist encontrado.</p>'}</div>
@@ -491,7 +491,7 @@ async function telaEtiquetas() {
       ${location.protocol !== 'https:' ? `<p class="aviso">Imprima as etiquetas pelo endereço oficial do GitHub Pages (https://…github.io/…). Este QR aponta para ${esc(location.host || 'um arquivo local')} e não vai funcionar nos celulares.</p>` : ''}
     </div>
     <div class="etiquetas">${lista.map(e => `<div class="etq"><div class="top">${ESCUDO} BRIGADA DE EMERGÊNCIA</div>
-      ${tokenDe(e.Codigo) ? `<div class="qr" data-url="${esc(urlEquip(e.Codigo, tokenDe(e.Codigo)))}"></div>` : '<p class="aviso" style="margin:10px">Sem código: clique em Atualizar</p>'}<b>${esc(e.Codigo)}</b><small>${esc(nomeTipo(e))}</small><small>${esc(e.Local)}</small>
+      ${tokenDe(e.Codigo) ? `<div class="qr" data-url="${esc(urlEquip(e.Codigo, tokenDe(e.Codigo)))}"></div>` : '<p class="aviso" style="margin:10px">Sem código: clique em Atualizar</p>'}<div class="etq-cod">${ilus(e, 30)}<b>${esc(e.Codigo)}</b></div><small>${esc(nomeTipo(e))}</small><small>${esc(e.Local)}</small>
       <div class="rod"><img src="logo.png" alt="" onerror="this.hidden=true"><span>Leia para fazer o checklist</span></div>
       <a href="javascript:void 0" class="nao-imprimir" style="display:block;font-size:.75rem;padding-bottom:8px" onclick="trocarCodigo(${js(e.Codigo)})">trocar código</a></div>`).join('')}</div>`);
   gerarQRs();
