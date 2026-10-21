@@ -8,3 +8,6 @@ supabase/dados-iniciais.sql
 # Imagens de referência de design (não fazem parte do app)
 1ff84505ea403b1cd9fb2974433caec8.jpg
 da8593ce7324ee06451499a89cc5fd74.jpg
+
+# Formulários digitalizados usados como referência
+*.pdf

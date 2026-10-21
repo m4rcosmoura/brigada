@@ -51,6 +51,7 @@
   .login .chip .ic { width: 30px; height: 30px; }
   .detalhe-itens { margin: 6px 0 0; padding-left: 18px; font-size: .85rem; }
   .detalhe-itens .nc { color: var(--red); font-weight: 600; }
+  .detalhe-itens .na { color: var(--muted); }
   .abas { display: flex; gap: 6px; margin-bottom: 14px; }
   .abas a { padding: 9px 16px; border-radius: 10px; background: #fff; border: 1px solid var(--line); color: var(--txt); text-decoration: none; font-weight: 600; }
   .abas a.ativo { background: var(--ink); color: #fff; border-color: var(--ink); }
@@ -131,7 +132,7 @@ async function alterar(acao, corpo, aplicar, msg) {
   recarregarTela();
 }
 const selDupla = (atual, onchange, extra = '') => `<select onchange="${onchange}" ${extra}><option value="">— Sem dupla —</option>${duplas().map(d => `<option value="${d}" ${String(atual) === d ? 'selected' : ''}>Dupla ${d} · ${esc(nomesDupla(d))}</option>`).join('')}</select>`;
-const situacao = x => !x.total ? '<span class="tag cinza">Sem equipamentos</span>' : x.pct === 100 ? (x.nc ? '<span class="tag nc">Com problema</span>' : '<span class="tag ok">Concluído</span>')
+const situacao = x => !x.total ? '<span class="tag cinza">Sem equipamentos</span>' : x.pct === 100 ? (x.nc ? '<span class="tag nc">Não conforme</span>' : '<span class="tag ok">Concluído</span>')
   : x.feitos ? '<span class="tag pend">Em andamento</span>' : '<span class="tag nc">Não iniciado</span>';
 const qtdTipos = eqs => categorias().map(c => [c, eqs.filter(e => e.Categoria === c).length]).filter(x => x[1]).map(([c, n]) => `${n} ${c.toLowerCase()}${n > 1 ? 's' : ''}`).join(' · ') || '—';
 
@@ -189,8 +190,8 @@ function telaPainel() {
     </div>
     <div class="kpis">
       <div class="kpi"><span class="chip azul">${ico('caixa')}</span><div><span>Equipamentos</span><b>${r.total}</b><small>${nomeMes(mes)}</small></div></div>
-      <div class="kpi"><span class="chip verde">${ico('ok')}</span><div><span>OK</span><b>${r.ok}</b><small>${pctDe(r.ok)}</small></div></div>
-      <div class="kpi"><span class="chip vermelho">${ico('alerta')}</span><div><span>Com problema</span><b>${r.nc}</b><small>${pctDe(r.nc)}</small></div></div>
+      <div class="kpi"><span class="chip verde">${ico('ok')}</span><div><span>Conforme</span><b>${r.ok}</b><small>${pctDe(r.ok)}</small></div></div>
+      <div class="kpi"><span class="chip vermelho">${ico('alerta')}</span><div><span>Não conforme</span><b>${r.nc}</b><small>${pctDe(r.nc)}</small></div></div>
       <div class="kpi"><span class="chip ambar">${ico('relogio')}</span><div><span>Pendentes</span><b>${r.pend}</b><small>${pctDe(r.pend)}</small></div></div>
     </div>
     <div class="grade-painel">
@@ -199,8 +200,8 @@ function telaPainel() {
         <div class="donut-wrap">
           ${donut([{ v: r.ok, cor: COR.ok }, { v: r.nc, cor: COR.nc }, { v: r.pend, cor: COR.pend }], r.pct + '%', 'realizado', 160)}
           <ul class="legenda">
-            <li><i style="background:${COR.ok}"></i>OK<b>${r.ok}</b></li>
-            <li><i style="background:${COR.nc}"></i>Com problema<b>${r.nc}</b></li>
+            <li><i style="background:${COR.ok}"></i>Conforme<b>${r.ok}</b></li>
+            <li><i style="background:${COR.nc}"></i>Não conforme<b>${r.nc}</b></li>
             <li><i style="background:${COR.pend}"></i>Pendente<b>${r.pend}</b></li>
           </ul>
         </div>
@@ -413,7 +414,7 @@ function telaEquipamentos() {
         <select onchange="eqF.setor=this.value;telaEquipamentos()"><option value="">Todos os setores</option>${nomesSetores().map(s => `<option ${s === eqF.setor ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select>
         <select onchange="eqF.cat=this.value;telaEquipamentos()"><option value="">Todas categorias</option>${categorias().map(c => `<option ${c === eqF.cat ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select>
         <select onchange="eqF.dupla=this.value;telaEquipamentos()"><option value="">Todas as duplas</option><option value="sem" ${eqF.dupla === 'sem' ? 'selected' : ''}>Sem dupla</option>${duplas().map(d => `<option value="${d}" ${eqF.dupla === d ? 'selected' : ''}>Dupla ${d}</option>`).join('')}</select>
-        <select onchange="eqF.st=this.value;telaEquipamentos()"><option value="">Qualquer status</option>${[['pend', 'Pendente'], ['ok', 'OK'], ['nc', 'Com problema']].map(([v, t]) => `<option value="${v}" ${eqF.st === v ? 'selected' : ''}>${t}</option>`).join('')}</select>
+        <select onchange="eqF.st=this.value;telaEquipamentos()"><option value="">Qualquer status</option>${[['pend', 'Pendente'], ['ok', 'Conforme'], ['nc', 'Não conforme']].map(([v, t]) => `<option value="${v}" ${eqF.st === v ? 'selected' : ''}>${t}</option>`).join('')}</select>
         <button class="btn sec peq" onclick="eqF={q:'',cat:'',dupla:'',st:'',setor:''};telaEquipamentos()">Limpar</button>
       </div>
     </div>
@@ -444,7 +445,7 @@ function telaHistorico() {
         <input placeholder="Buscar código, local, setor, brigadista, observação…" value="${esc(histF.q)}" onchange="histF.q=this.value;telaHistorico()">
         ${selMes(mes, "histF.mes=this.value;telaHistorico()", true)}
         <select onchange="histF.dupla=this.value;telaHistorico()"><option value="">Todas as duplas</option>${duplas().map(d => `<option value="${d}" ${histF.dupla === d ? 'selected' : ''}>Dupla ${d}</option>`).join('')}</select>
-        <select onchange="histF.res=this.value;telaHistorico()"><option value="">Todos resultados</option><option value="OK" ${histF.res === 'OK' ? 'selected' : ''}>OK</option><option value="NC" ${histF.res === 'NC' ? 'selected' : ''}>Com problema</option></select>
+        <select onchange="histF.res=this.value;telaHistorico()"><option value="">Todos resultados</option><option value="OK" ${histF.res === 'OK' ? 'selected' : ''}>Conforme</option><option value="NC" ${histF.res === 'NC' ? 'selected' : ''}>Não conforme</option></select>
         <button class="btn sec peq" onclick="exportarCSV(${mes ? `'${mes}'` : 'null'}, histLista)">${ico('baixar')} CSV (${lista.length})</button>
       </div>
     </div>
@@ -452,7 +453,7 @@ function telaHistorico() {
       <div class="tbl-scroll tbl-alta"><table>
         <tr><th>Data</th><th>Código</th><th>Setor / local</th><th>Dupla</th><th>Brigadista</th><th>Resultado</th><th>Problemas / observação</th></tr>
         ${lista.map((r, i) => `<tr class="clic" onclick="verItens(this, ${i})"><td class="muted" style="white-space:nowrap">${fmtData(r.DataHora)}</td><td><b>${esc(r.Codigo)}</b></td><td>${r.Setor ? `<b>${esc(r.Setor)}</b><br>` : ''}<span class="muted">${esc(r.Local)}</span></td><td>${esc(r.Dupla || '—')}</td>
-          <td>${esc(r.Brigadista)}</td><td>${r.Resultado === 'OK' ? '<span class="tag ok">OK</span>' : '<span class="tag nc">Com problema</span>'}</td>
+          <td>${esc(r.Brigadista)}</td><td>${r.Resultado === 'OK' ? '<span class="tag ok">Conforme</span>' : '<span class="tag nc">Não conforme</span>'}</td>
           <td>${r.ItensNC ? `<b style="color:var(--red)">${esc(r.ItensNC)}</b><br>` : ''}<span class="muted">${esc(r.Observacao)}</span></td></tr>`).join('')}
       </table>${lista.length ? '' : '<p class="muted" style="padding:16px">Nenhum checklist encontrado.</p>'}</div>
     </div>`);
@@ -461,9 +462,15 @@ function telaHistorico() {
 function verItens(tr, i) {
   const prox = tr.nextElementSibling;
   if (prox && prox.classList.contains('det')) return prox.remove();
-  let det = {}; try { det = JSON.parse(histLista[i].Detalhe || '{}'); } catch (e) {}
-  const itens = Object.entries(det.itens || {});
-  tr.insertAdjacentHTML('afterend', `<tr class="det"><td></td><td colspan="6"><ul class="detalhe-itens">${itens.map(([t, v]) => `<li class="${v}">${v === 'ok' ? '✔' : '✖'} ${esc(t)}</li>`).join('') || '<li>Sem detalhe</li>'}</ul>
+  const det = detalheDe(histLista[i]);
+  const itens = Object.entries(det.itens || {}), obsItens = det.obsItens || {};
+  const marca = { ok: '✔', nc: '✖', na: '–' };
+  const eq = eqPorCodigo(histLista[i].Codigo) || { Categoria: histLista[i].Categoria, Tipo: histLista[i].Tipo };
+  const extras = camposExtrasDe(eq).filter(c => (det.extras || {})[c.id])
+    .map(c => `${esc(c.rotulo)}: <b>${esc(new Date(det.extras[c.id] + 'T12:00').toLocaleDateString('pt-BR'))}</b>`).join(' · ');
+  tr.insertAdjacentHTML('afterend', `<tr class="det"><td></td><td colspan="6">
+    ${extras ? `<div style="margin-bottom:6px">${extras}</div>` : ''}
+    <ul class="detalhe-itens">${itens.map(([t, v]) => `<li class="${v}">${marca[v] || '?'} ${esc(t)} <span class="muted">— ${esc(RESPOSTAS[v] || v)}${obsItens[t] ? ': ' + esc(obsItens[t]) : ''}</span></li>`).join('') || '<li>Sem detalhe</li>'}</ul>
     <small class="muted">Origem: ${esc(det.origem || '—')}</small></td></tr>`);
 }
 

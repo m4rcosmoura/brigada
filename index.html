@@ -33,10 +33,18 @@
   .item.nc { border-color: var(--red); box-shadow: inset 4px 0 0 var(--red), var(--sombra); background: #fffafa; }
   .item p { margin: 0 0 12px; font-weight: 600; display: flex; gap: 10px; }
   .item p .n { color: var(--muted); font-variant-numeric: tabular-nums; }
-  .item .opc { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .item .opc button { min-height: 58px; font: inherit; font-size: 1.05rem; font-weight: 700; border-radius: 11px; border: 1.5px solid var(--line); background: #f8f9fb; color: var(--txt); display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; }
+  .item.na { border-color: #9aa3af; box-shadow: inset 4px 0 0 #9aa3af, var(--sombra); background: #fafafa; }
+  .item .opc { display: grid; grid-template-columns: 1fr 1fr 0.62fr; gap: 8px; }
+  .item .opc button { min-height: 58px; font: inherit; font-size: .98rem; font-weight: 700; border-radius: 11px; border: 1.5px solid var(--line); background: #f8f9fb; color: var(--txt); display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; padding: 4px; line-height: 1.15; text-align: center; }
+  .item .opc button .ic { width: 18px; height: 18px; }
   .item.ok .opc .b-ok { background: var(--green); border-color: var(--green); color: #fff; }
   .item.nc .opc .b-nc { background: var(--red); border-color: var(--red); color: #fff; }
+  .item.na .opc .b-na { background: #6b7280; border-color: #6b7280; color: #fff; }
+  .item .obs-item { margin-top: 10px; min-height: 46px; }
+  .extras { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .extras > div, .extras input { min-width: 0; }
+  .extras input { padding: 10px 8px; }
+  .extras label { font-weight: 600; font-size: .9rem; display: block; margin-bottom: 4px; }
   .ok-msg { text-align: center; padding: 34px 18px; }
   .ok-msg .chip { width: 76px; height: 76px; border-radius: 50%; margin-bottom: 10px; }
   .ok-msg .chip .ic { width: 40px; height: 40px; }
@@ -226,10 +234,14 @@ function telaChecklist(cod) {
   if (!eq) return render('Equipamento', `<div class="card"><h2>Código não encontrado</h2><p>${esc(cod)}</p></div><button class="btn" onclick="ir('')">Início</button>`);
   const u = usuario();
   const st = statusEq(eq.Codigo, mesAtual());
-  const itens = itensDe(eq);
+  const itens = itensDe(eq), extras = camposExtrasDe(eq);
   respostas = {};
   const outraDupla = duplaDe(eq) && minhaDupla() && duplaDe(eq) !== minhaDupla();
   if (!leituraValida(eq.Codigo)) return telaPrecisaLer(eq, st);
+  // valores do cabeçalho (ex.: aquisição da mangueira) do checklist mais recente deste equipamento
+  const ultimoComExtras = S.registros.filter(r => r.Codigo === eq.Codigo).sort((a, b) => b.DataHora.localeCompare(a.DataHora))
+    .map(detalheDe).find(d => d.extras);
+  const anteriores = (ultimoComExtras && ultimoComExtras.extras) || {};
   render(eq.Codigo, `
     <div class="card escuro ativo-card">
       <div class="topo-eq">
@@ -244,14 +256,18 @@ function telaChecklist(cod) {
       </dl>
       ${outraDupla ? `<div class="aviso">Este equipamento é da dupla ${esc(duplaDe(eq))}. Você pode fazer mesmo assim.</div>` : ''}
     </div>
-    <button class="btn verde" onclick="marcarTodos()">${ico('ok')} Marcar tudo OK</button>
+    ${extras.length ? `<div class="card"><div class="extras">${extras.map(c => `<div><label for="ex-${c.id}">${esc(c.rotulo)}</label>
+      <input type="${c.tipo}" id="ex-${c.id}" value="${esc(anteriores[c.id] || '')}"></div>`).join('')}</div>
+      ${Object.keys(anteriores).length ? '<p class="muted" style="margin:8px 0 0;font-size:.82rem">Preenchido com o último checklist. Corrija se mudou.</p>' : ''}</div>` : ''}
+    <button class="btn verde" onclick="marcarTodos()">${ico('ok')} Tudo conforme</button>
     <div id="itens">
       ${itens.map((t, i) => `<div class="item" id="it${i}"><p><span class="n">${String(i + 1).padStart(2, '0')}</span>${esc(t)}</p>
-        <div class="opc"><button class="b-ok" onclick="resp(${i},'ok')">${ico('ok')} OK</button><button class="b-nc" onclick="resp(${i},'nc')">${ico('x')} Problema</button></div></div>`).join('')}
+        <div class="opc"><button class="b-ok" onclick="resp(${i},'ok')">${ico('ok')} Conforme</button><button class="b-nc" onclick="resp(${i},'nc')">${ico('x')} Não conforme</button><button class="b-na" onclick="resp(${i},'na')">N.A.</button></div>
+        <input class="obs-item" id="obs${i}" placeholder="Observação deste item" hidden></div>`).join('')}
     </div>
     <div class="card">
-      <label class="campo" for="obs" style="margin-top:0">Observação <span class="muted" id="obs-obrig"></span></label>
-      <textarea id="obs" placeholder="Descreva o problema encontrado…"></textarea>
+      <label class="campo" for="obs" style="margin-top:0">Observações / ações necessárias</label>
+      <textarea id="obs" placeholder="Opcional"></textarea>
     </div>
     <button class="btn" style="min-height:70px;font-size:1.2rem" id="btn-salvar" onclick="salvarChecklist('${esc(eq.Codigo)}')">${ico('salvar')} Salvar checklist</button>`);
 }
@@ -278,8 +294,10 @@ function telaPrecisaLer(eq, st) {
 function resp(i, v) {
   respostas[i] = v;
   document.getElementById('it' + i).className = 'item ' + v;
-  const temNC = Object.values(respostas).includes('nc');
-  document.getElementById('obs-obrig').textContent = temNC ? '(obrigatória)' : '';
+  const campo = document.getElementById('obs' + i);
+  campo.hidden = v === 'ok';                       // como a coluna "N.A. / Observação" do papel
+  campo.placeholder = v === 'nc' ? 'O que está errado? (obrigatório)' : 'Observação (opcional)';
+  if (v === 'nc') campo.focus();
 }
 function marcarTodos() {
   document.querySelectorAll('#itens .item').forEach((_, i) => resp(i, 'ok'));
@@ -289,9 +307,12 @@ async function salvarChecklist(cod) {
   const eq = eqPorCodigo(cod), itens = itensDe(eq), u = usuario();
   const falta = itens.findIndex((_, i) => !respostas[i]);
   if (falta >= 0) { toast('Responda o item ' + (falta + 1)); document.getElementById('it' + falta).scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
-  const nc = itens.filter((_, i) => respostas[i] === 'nc');
+  const obsItens = Object.fromEntries(itens.map((t, i) => [t, respostas[i] === 'ok' ? '' : document.getElementById('obs' + i).value.trim()]).filter(x => x[1]));
+  const semObs = itens.findIndex((t, i) => respostas[i] === 'nc' && !obsItens[t]);
+  if (semObs >= 0) { toast('Descreva o problema do item ' + (semObs + 1)); document.getElementById('obs' + semObs).focus(); return; }
+  const nc = itens.filter((_, i) => respostas[i] === 'nc').map(t => `${t} (${obsItens[t]})`);
   const obs = document.getElementById('obs').value.trim();
-  if (nc.length && !obs) { toast('Descreva o problema na observação'); document.getElementById('obs').focus(); return; }
+  const extras = Object.fromEntries(camposExtrasDe(eq).map(c => [c.id, document.getElementById('ex-' + c.id).value]).filter(x => x[1]));
   if (!leituraValida(eq.Codigo)) { toast('A leitura do QR expirou. Leia a etiqueta de novo.'); return ir('ler'); }
   const btn = document.getElementById('btn-salvar'); btn.disabled = true; btn.textContent = 'Salvando…';
   const agora = new Date();
@@ -300,7 +321,8 @@ async function salvarChecklist(cod) {
     DataHora: agora.toISOString(), Mes: mesDe(agora),
     Codigo: eq.Codigo, Categoria: eq.Categoria, Tipo: eq.Tipo, Local: eq.Local, Dupla: duplaDe(eq), Setor: setorDe(eq),
     Brigadista: u.Nome, Resultado: nc.length ? 'NC' : 'OK', ItensNC: nc.join('; '), Observacao: obs,
-    Detalhe: JSON.stringify({ itens: Object.fromEntries(itens.map((t, i) => [t, respostas[i]])), origem: 'QR', lidoEm: new Date(leitura.em).toISOString(), duplaBrigadista: minhaDupla() }),
+    Detalhe: JSON.stringify({ itens: Object.fromEntries(itens.map((t, i) => [t, respostas[i]])), obsItens, extras,
+      origem: 'QR', lidoEm: new Date(leitura.em).toISOString(), duplaBrigadista: minhaDupla() }),
     Token: leitura.token, // o banco confere com o código da etiqueta; não é gravado
   };
   leitura = null; // cada leitura vale para um checklist
@@ -316,9 +338,9 @@ async function salvarChecklist(cod) {
   render('Salvo', `
     <div class="card ok-msg">
       <span class="chip ${nc.length ? 'vermelho' : 'verde'}">${ico(nc.length ? 'alerta' : 'ok')}</span>
-      <h2>${nc.length ? 'Salvo com problema' : 'Checklist salvo!'}</h2>
+      <h2>${nc.length ? 'Salvo com não conformidade' : 'Checklist salvo!'}</h2>
       <p style="margin:0"><b>${esc(eq.Codigo)}</b> · ${esc(eq.Local)}</p>
-      ${nc.length ? `<p class="muted">Problemas: ${esc(nc.join('; '))}</p>` : ''}
+      ${nc.length ? `<p class="muted">Não conformidades: ${esc(nc.join('; '))}</p>` : ''}
       ${!enviado ? '<p class="aviso">Sem internet: ficou salvo no celular e será enviado automaticamente.</p>' : ''}
     </div>
     <button class="btn btn-scan" onclick="ir('ler')">${ico('scan')}<span><b>Próximo equipamento</b><small>Ler outro QR Code</small></span></button>

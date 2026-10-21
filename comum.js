@@ -28,14 +28,19 @@ const CHECKLISTS = {
     'Sinalização (placa e piso) visível',
     'Acesso desobstruído e altura correta',
   ],
+  // Formulário "Checklist de verificação – Sistema de hidrantes" (mesma ordem do papel)
   'Hidrante com abrigo': [
-    'Abrigo sinalizado, limpo e sem danos',
-    'Porta abre e fecha normalmente',
-    'Mangueiras completas e bem acondicionadas',
-    'Esguicho presente e em bom estado',
-    'Chave de mangueira (storz) presente',
-    'Registro sem vazamento e com volante',
-    'Acesso desobstruído',
+    'Acesso obstruído',
+    'Demarcação no piso',
+    'Identificação',
+    'Vazamento',
+    'Esguicho',
+    'Chave Storz - 2 UND',
+    'Mangueiras - 2 UND',
+    'Abrigo hidrante',
+    'Registros',
+    'Lacre',
+    'Botoeira de alarmes',
   ],
   'Hidrante de recalque': [
     'Tampa presente e identificada "INCÊNDIO"',
@@ -53,6 +58,19 @@ const CHECKLISTS = {
 };
 const CHECKLIST_PADRAO = ['Equipamento em bom estado', 'Sinalização visível', 'Acesso desobstruído'];
 const itensDe = eq => CHECKLISTS[eq.Categoria === 'Extintor' ? 'Extintor' : eq.Tipo] || CHECKLIST_PADRAO;
+
+/* Campos extras do cabeçalho do formulário, por tipo. Vêm preenchidos com o valor do último checklist do equipamento. */
+const CAMPOS_EXTRAS = {
+  'Hidrante com abrigo': [
+    { id: 'aquisicaoMangueira', rotulo: 'Aquisição da mangueira', tipo: 'date' },
+    { id: 'proximoTeste', rotulo: 'Próximo teste', tipo: 'date' },
+  ],
+};
+const camposExtrasDe = eq => CAMPOS_EXTRAS[eq.Categoria === 'Extintor' ? 'Extintor' : eq.Tipo] || [];
+
+/* Respostas de cada item: Conforme / Não conforme / N.A. (como no formulário em papel) */
+const RESPOSTAS = { ok: 'Conforme', nc: 'Não conforme', na: 'N.A.' };
+const detalheDe = r => { try { return JSON.parse(r.Detalhe || '{}'); } catch (e) { return {}; } };
 
 /* ---------------- Ícones (traço) ---------------- */
 const ICONES = {
@@ -103,7 +121,8 @@ function lsSet(k, v) {
 }
 
 /* ---------------- Utilitários ---------------- */
-const DEMO = !CONFIG.SUPABASE_URL || !CONFIG.SUPABASE_KEY;
+// ?demo no endereço força o modo demonstração (para testar sem tocar no banco real)
+const DEMO = !CONFIG.SUPABASE_URL || !CONFIG.SUPABASE_KEY || new URLSearchParams(location.search).has("demo");
 const VERSAO_DADOS = 4; // muda quando o formato do cadastro de demonstração muda
 let S = { brigadistas: [], setores: [], equipamentos: [], registros: [], atualizadoEm: null, offline: false };
 /* argumento seguro para onclick="fn(${js(x)})" */
@@ -147,7 +166,7 @@ function statusEq(cod, mes) {
     if (!ult || r.DataHora > ult.DataHora) ult = r;
   }
   if (!ult) return { st: 'pend', txt: 'Pendente' };
-  return ult.Resultado === 'OK' ? { st: 'ok', txt: 'OK', reg: ult } : { st: 'nc', txt: 'Com problema', reg: ult };
+  return ult.Resultado === 'OK' ? { st: 'ok', txt: 'Conforme', reg: ult } : { st: 'nc', txt: 'Não conforme', reg: ult };
 }
 const tagStatus = s => `<span class="tag ${s.st}">${s.txt}</span>`;
 
