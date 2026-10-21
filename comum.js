@@ -102,7 +102,7 @@ const ICONES = {
   pin: '<path d="M12 21s-7-6.3-7-11.5a7 7 0 0 1 14 0C19 14.7 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
 };
 const ico = (n, cls = '') => `<svg class="ic ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONES[n] || ''}</svg>`;
-const ESCUDO = '<svg viewBox="0 0 24 24"><path d="M12 2l8 3v6c0 5-3.5 9.5-8 11-4.5-1.5-8-6-8-11V5z" fill="#d6262f"/><path d="M12.2 7.2c1.6 1.9 3.1 3.2 3.1 5.5a3.3 3.3 0 0 1-6.6 0c0-1.3.6-2.2 1.4-2.9.1 1.1.7 1.7 1.3 1.7 0-1.7-.2-2.8.8-4.3z" fill="#fff"/></svg>';
+const ESCUDO = '<img src="brigada.png" alt="">'; // logo da brigada (etiquetas)
 /* ---------------- Ilustrações coloridas dos equipamentos ---------------- */
 const ILUS = {
   extintor: `<svg viewBox="0 0 64 64" aria-hidden="true">

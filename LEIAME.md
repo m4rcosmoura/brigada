@@ -24,6 +24,7 @@ São duas versões que usam o mesmo banco de dados (Supabase):
 | `gestao.html` | sim | Gestão (PC) |
 | `comum.js` | sim | Código comum. **Aqui ficam a configuração do Supabase e os itens dos checklists** |
 | `estilo.css` | sim | Visual |
+| `brigada.png` | sim | Logo da Brigada de Emergência: topo, ícone do app, login da gestão e etiquetas |
 | `logo.png` | sim | **Coloque aqui o logo oficial** com este nome exato. Sem ele, o espaço do logo some |
 | `supabase/schema.sql` | sim | Estrutura do banco: tabelas, regras de segurança e funções |
 | `supabase/dados-iniciais.sql` | **não** | Cadastro inicial: 47 brigadistas, 210 setores e 344 equipamentos. **Tem nomes de pessoas**: roda no Supabase e fica só nesta pasta |

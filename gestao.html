@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#15181d">
 <title>Gestão Brigada</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 2l8 3v6c0 5-3.5 9.5-8 11-4.5-1.5-8-6-8-11V5z' fill='%23d6262f'/></svg>">
+<link rel="icon" type="image/png" href="brigada.png">
+<link rel="apple-touch-icon" href="brigada.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="estilo.css">
@@ -47,7 +48,9 @@
   .compacto { display: flex; gap: 8px; }
   .compacto select { flex: 1; }
   .login { max-width: 400px; margin: 9vh auto; }
-  .login .chip { width: 60px; height: 60px; border-radius: 16px; margin-bottom: 12px; }
+  .login .logo-login { display: block; width: 120px; height: 120px; margin: 0 auto 14px; }
+  .login { text-align: center; }
+  .login form, .login input { text-align: left; }
   .login .chip .ic { width: 30px; height: 30px; }
   .detalhe-itens { margin: 6px 0 0; padding-left: 18px; font-size: .85rem; }
   .detalhe-itens .nc { color: var(--red); font-weight: 600; }
@@ -67,7 +70,7 @@
 <body>
 <header class="topo">
   <a class="marca" href="#/">
-    <svg class="escudo" viewBox="0 0 24 24"><path d="M12 2l8 3v6c0 5-3.5 9.5-8 11-4.5-1.5-8-6-8-11V5z" fill="#d6262f"/><path d="M12.2 7.2c1.6 1.9 3.1 3.2 3.1 5.5a3.3 3.3 0 0 1-6.6 0c0-1.3.6-2.2 1.4-2.9.1 1.1.7 1.7 1.3 1.7 0-1.7-.2-2.8.8-4.3z" fill="#fff"/></svg>
+    <img class="escudo" src="brigada.png" alt="Brigada de Emergência">
     <span style="min-width:0"><b>Gestão da Brigada</b><small>Dois Marcos Sementes · checklist de equipamentos</small></span>
   </a>
   <button class="ibtn" id="btn-sync" onclick="sincronizar(true)" aria-label="Atualizar dados"></button>
@@ -140,7 +143,7 @@ const qtdTipos = eqs => categorias().map(c => [c, eqs.filter(e => e.Categoria ==
 function telaLogin() {
   render(`
     <div class="card login">
-      <span class="chip vermelho">${ico('cadeado')}</span>
+      <img class="logo-login" src="brigada.png" alt="Brigada de Emergência">
       <h2 style="margin:0">Acesso da coordenação</h2>
       <p class="muted">Digite o PIN de administrador para ver o painel e os controles.</p>
       <form onsubmit="event.preventDefault();entrar()">
