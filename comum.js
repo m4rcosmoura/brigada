@@ -162,14 +162,29 @@ const ILUS = {
     <circle cx="29.5" cy="25.5" r="3" fill="#ff8f8f"/>
     <rect x="21" y="47" width="22" height="3.5" rx="1.75" fill="#fff" opacity=".85"/>
   </svg>`,
+  central: `<svg viewBox="0 0 64 64" aria-hidden="true">
+    <rect x="8" y="9" width="48" height="46" rx="7" fill="#3a404a"/>
+    <rect x="13" y="14" width="38" height="14" rx="3" fill="#1d2128"/>
+    <rect x="16" y="17" width="20" height="3" rx="1.5" fill="#5fd39f"/>
+    <rect x="16" y="22" width="13" height="3" rx="1.5" fill="#5fd39f" opacity=".6"/>
+    <circle cx="44" cy="21" r="4" fill="#e63946"/>
+    <circle cx="19" cy="37" r="3.5" fill="#1f9d63"/>
+    <circle cx="30" cy="37" r="3.5" fill="#f4b740"/>
+    <circle cx="41" cy="37" r="3.5" fill="#e63946"/>
+    <rect x="15" y="45" width="34" height="5" rx="2.5" fill="#596170"/>
+    <path d="M8 59h48" stroke="#a61e27" stroke-width="3" stroke-linecap="round"/>
+  </svg>`,
 };
-const ilusTipo = eq => eq.Categoria === 'Extintor' ? 'extintor' : eq.Categoria === 'Alarme' ? 'botoeira'
+const ilusTipo = eq => eq.Categoria === 'Extintor' ? 'extintor'
+  : eq.Categoria === 'Alarme' ? (/central/i.test(eq.Tipo) ? 'central' : 'botoeira')
   : eq.Tipo === 'Hidrante com abrigo' ? 'abrigo' : eq.Tipo === 'Acionamento manual' ? 'botoeira' : 'hidrante';
 /* Ilustração num "azulejo" arredondado; st (ok/nc/pend) colore a moldura conforme o status */
 const ilus = (eq, tam = 48, st = '') => `<span class="ilus ${st}" style="--t:${tam}px">${ILUS[ilusTipo(eq)]}</span>`;
 const ilusCat = (cat, tam = 40) => `<span class="ilus" style="--t:${tam}px">${ILUS[{ Extintor: 'extintor', Alarme: 'botoeira' }[cat] || 'hidrante']}</span>`;
 
-const nomeTipo = eq =>String(eq.Tipo).toLowerCase().startsWith(String(eq.Categoria).toLowerCase()) ? eq.Tipo : eq.Categoria + ' ' + eq.Tipo;
+const nomeTipo = eq => eq.Categoria === 'Alarme' || String(eq.Tipo).toLowerCase().startsWith(String(eq.Categoria).toLowerCase()) ? eq.Tipo : eq.Categoria + ' ' + eq.Tipo;
+/* Onde fica: descrição do local (alarmes, ex.: "AR 01 AO LADO DO HIDRANTE") ou a localização */
+const ondeFica = eq => eq.Descricao || eq.Local;
 const iconeDe = eq => ico(eq.Categoria === 'Hidrante' ? 'hidrante' : 'extintor');
 
 /* ---------------- Armazenamento (com reserva em memória) ----------------
@@ -190,7 +205,7 @@ function lsSet(k, v) {
 /* ---------------- Utilitários ---------------- */
 // ?demo no endereço força o modo demonstração (para testar sem tocar no banco real)
 const DEMO = !CONFIG.SUPABASE_URL || !CONFIG.SUPABASE_KEY || new URLSearchParams(location.search).has("demo");
-const VERSAO_DADOS = 4; // muda quando o formato do cadastro de demonstração muda
+const VERSAO_DADOS = 5; // muda quando o formato do cadastro de demonstração muda
 let S = { brigadistas: [], setores: [], equipamentos: [], registros: [], atualizadoEm: null, offline: false };
 /* argumento seguro para onclick="fn(${js(x)})" */
 const js = s => esc(JSON.stringify(String(s ?? '')));

@@ -35,6 +35,7 @@ create table if not exists equipamentos (
   ativo      boolean not null default true,
   token      text not null default upper(encode(gen_random_bytes(5), 'hex'))  -- código secreto do QR
 );
+alter table equipamentos add column if not exists descricao text not null default '';  -- ex.: AR 01 AO LADO DO HIDRANTE
 
 create table if not exists registros (
   id          text primary key,
@@ -73,7 +74,7 @@ create or replace view v_setores as
 
 create or replace view v_equipamentos as
   select codigo as "Codigo", categoria as "Categoria", tipo as "Tipo", local as "Local", grupo as "Grupo",
-         case when ativo then 'SIM' else 'NÃO' end as "Ativo"
+         case when ativo then 'SIM' else 'NÃO' end as "Ativo", descricao as "Descricao"
   from equipamentos;
 
 create or replace view v_registros as

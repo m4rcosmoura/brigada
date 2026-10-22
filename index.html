@@ -329,7 +329,8 @@ function cartaoEquip(eq, st, completo) {
       ${tagStatus(st)}
     </div>
     <div class="fatos">
-      <div>${ico('pin')}<span class="corta">${esc(eq.Local)}${eq.Grupo && eq.Grupo !== eq.Local ? ' · ' + esc(eq.Grupo) : ''}</span></div>
+      ${eq.Descricao ? `<div>${ico('pin')}<b class="corta">${esc(eq.Descricao)}</b></div>` : ''}
+      <div>${eq.Descricao ? ico('caixa') : ico('pin')}<span class="corta">${esc(eq.Local)}${eq.Grupo && eq.Grupo !== eq.Local ? ' · ' + esc(eq.Grupo) : ''}</span></div>
       ${completo ? `<div>${ico('equipe')}<span class="corta">${d ? 'Dupla ' + esc(d) + ' · ' + esc(nomesDupla(d)) : 'Sem dupla'}</span></div>
       <div>${ico('relogio')}<span class="corta">${st.reg ? 'Último: ' + fmtData(st.reg.DataHora) + ' · ' + esc(primeiroNome(st.reg.Brigadista)) : 'Nenhum checklist este mês'}</span></div>` : ''}
     </div>
@@ -399,7 +400,7 @@ async function salvarChecklist(cod) {
     <div class="card ok-msg">
       ${destaque(eq, nc.length ? 'nc' : 'ok')}
       <h2>${nc.length ? 'Salvo com não conformidade' : 'Checklist salvo!'}</h2>
-      <p style="margin:0"><b>${esc(eq.Codigo)}</b> · ${esc(eq.Local)}</p>
+      <p style="margin:0"><b>${esc(eq.Codigo)}</b> · ${esc(ondeFica(eq))}</p>
       ${nc.length ? `<p class="muted">Não conformidades: ${esc(nc.join('; '))}</p>` : ''}
       ${!enviado ? '<p class="aviso">Sem internet: ficou salvo no celular e será enviado automaticamente.</p>' : ''}
     </div>
@@ -434,7 +435,7 @@ function telaMeus() {
       <div class="linha" style="justify-content:space-between;gap:8px"><b style="flex:1;min-width:0">${esc(g.nome)}</b><span class="tag ${rg.pend ? 'pend' : rg.nc ? 'nc' : 'ok'}">${rg.feitos}/${rg.total}</span></div>
       <ul class="lista">${g.itens.map(({ e, s }) => `<li><a class="lin" href="#/eq/${encodeURIComponent(e.Codigo)}">
         ${ilus(e, 46, s.st)}
-        <span class="info"><b>${esc(e.Codigo)}</b><small>${esc(nomeTipo(e))}</small></span>${tagStatus(s)}</a></li>`).join('')}</ul>
+        <span class="info"><b>${esc(e.Codigo)}</b><small>${esc(e.Descricao || nomeTipo(e))}</small></span>${tagStatus(s)}</a></li>`).join('')}</ul>
     </div>`; }).join('')}
     ${meus.length ? '' : '<div class="card"><p class="muted" style="margin:0">Nenhum setor atribuído à sua dupla. Avise o coordenador da brigada.</p></div>'}`);
 }

@@ -4,6 +4,7 @@
 # NÃO PUBLICAR: contém nomes dos brigadistas (vão direto para o Supabase)
 dados-iniciais.js
 supabase/dados-iniciais.sql
+supabase/alarmes.sql
 
 # Imagens de referência de design (não fazem parte do app)
 1ff84505ea403b1cd9fb2974433caec8.jpg

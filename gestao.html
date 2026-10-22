@@ -382,7 +382,7 @@ function telaEquipamentos() {
   const lista = equipamentos().map(e => ({ e, s: statusEq(e.Codigo, mes), d: duplaDe(e) })).filter(({ e, s, d }) =>
     (!eqF.cat || e.Categoria === eqF.cat) && (!eqF.st || s.st === eqF.st) && (!eqF.setor || setorDe(e) === eqF.setor)
     && (!eqF.dupla || (eqF.dupla === 'sem' ? !d : d === eqF.dupla))
-    && (!q || (e.Codigo + ' ' + e.Local + ' ' + e.Tipo + ' ' + e.Grupo).toLowerCase().includes(q)));
+    && (!q || (e.Codigo + ' ' + e.Local + ' ' + e.Tipo + ' ' + e.Grupo + ' ' + (e.Descricao || '')).toLowerCase().includes(q)));
   render(`
     <div class="titulo-pag"><h2>Equipamentos</h2><div class="muted">Consulta do status de ${nomeMes(mes)}. O responsável vem do <b>setor</b> (localização): para trocar, mude a dupla do setor em <a href="#/setores">Setores</a>. Para cadastrar, mudar a localização ou desativar um equipamento, use o Supabase (tabela equipamentos).</div></div>
     <div class="card">
@@ -398,7 +398,7 @@ function telaEquipamentos() {
     <div class="card" style="padding:0;overflow:hidden">
       <div class="tbl-scroll tbl-alta"><table>
         <tr><th>Código</th><th>Tipo</th><th>Setor (localização)</th><th>Dupla</th><th>Status do mês</th><th>Último checklist</th></tr>
-        ${lista.map(({ e, s, d }) => `<tr><td><span class="linha" style="gap:10px;flex-wrap:nowrap">${ilus(e, 34, s.st)}<b>${esc(e.Codigo)}</b></span></td><td>${esc(nomeTipo(e))}</td><td>${esc(e.Local)}${e.Grupo ? ` <span class="muted">· ${esc(e.Grupo)}</span>` : ''}</td>
+        ${lista.map(({ e, s, d }) => `<tr><td><span class="linha" style="gap:10px;flex-wrap:nowrap">${ilus(e, 34, s.st)}<b style="white-space:nowrap">${esc(e.Codigo)}</b></span></td><td>${esc(nomeTipo(e))}</td><td>${esc(e.Local)}${e.Grupo && e.Grupo !== e.Local ? ` <span class="muted">· ${esc(e.Grupo)}</span>` : ''}${e.Descricao ? `<br><small class="muted">${esc(e.Descricao)}</small>` : ''}</td>
           <td>${d ? `<b>${esc(d)}</b> <span class="muted">${esc(nomesDupla(d))}</span>` : '<span class="tag cinza">Sem dupla</span>'}</td>
           <td>${tagStatus(s)}</td><td class="muted">${s.reg ? fmtData(s.reg.DataHora) + ' · ' + esc(primeiroNome(s.reg.Brigadista)) : '—'}</td></tr>`).join('')}
       </table>${lista.length ? '' : '<p class="muted" style="padding:16px">Nada encontrado.</p>'}</div>
@@ -429,7 +429,7 @@ function telaHistorico() {
     <div class="card" style="padding:0;overflow:hidden">
       <div class="tbl-scroll tbl-alta"><table>
         <tr><th>Data</th><th>Código</th><th>Setor / local</th><th>Dupla</th><th>Brigadista</th><th>Resultado</th><th>Problemas / observação</th></tr>
-        ${lista.map((r, i) => `<tr class="clic" onclick="verItens(this, ${i})"><td class="muted" style="white-space:nowrap">${fmtData(r.DataHora)}</td><td><span class="linha" style="gap:10px;flex-wrap:nowrap">${ilus({ Categoria: r.Categoria, Tipo: r.Tipo }, 30, r.Resultado === "OK" ? "ok" : "nc")}<b>${esc(r.Codigo)}</b></span></td><td>${r.Setor ? `<b>${esc(r.Setor)}</b><br>` : ''}<span class="muted">${esc(r.Local)}</span></td><td>${esc(r.Dupla || '—')}</td>
+        ${lista.map((r, i) => `<tr class="clic" onclick="verItens(this, ${i})"><td class="muted" style="white-space:nowrap">${fmtData(r.DataHora)}</td><td><span class="linha" style="gap:10px;flex-wrap:nowrap">${ilus({ Categoria: r.Categoria, Tipo: r.Tipo }, 30, r.Resultado === "OK" ? "ok" : "nc")}<b style="white-space:nowrap">${esc(r.Codigo)}</b></span></td><td>${r.Setor ? `<b>${esc(r.Setor)}</b><br>` : ''}<span class="muted">${esc(r.Local)}</span></td><td>${esc(r.Dupla || '—')}</td>
           <td>${esc(r.Brigadista)}</td><td>${r.Resultado === 'OK' ? '<span class="tag ok">Conforme</span>' : '<span class="tag nc">Não conforme</span>'}</td>
           <td>${r.ItensNC ? `<b style="color:var(--red)">${esc(r.ItensNC)}</b><br>` : ''}<span class="muted">${esc(r.Observacao)}</span></td></tr>`).join('')}
       </table>${lista.length ? '' : '<p class="muted" style="padding:16px">Nenhum checklist encontrado.</p>'}</div>
@@ -481,7 +481,7 @@ async function telaEtiquetas() {
   }
   const q = qrF.q.toLowerCase();
   const lista = equipamentos().filter(e => (!qrF.cat || e.Categoria === qrF.cat) && (!qrF.setor || setorDe(e) === qrF.setor)
-    && (!q || (e.Codigo + ' ' + e.Local).toLowerCase().includes(q)));
+    && (!q || (e.Codigo + ' ' + e.Local + ' ' + (e.Descricao || '')).toLowerCase().includes(q)));
   render(`
     <div class="titulo-pag nao-imprimir"><h2>Etiquetas QR Code</h2><div class="muted">Imprima em papel adesivo e plastifique. Cada QR tem um código secreto: o checklist <b>só</b> é aceito lendo a etiqueta no local. Se uma etiqueta for copiada ou fotografada, use "trocar código" e cole a nova.</div></div>
     <div class="card nao-imprimir">
@@ -494,7 +494,7 @@ async function telaEtiquetas() {
       ${location.protocol !== 'https:' ? `<p class="aviso">Imprima as etiquetas pelo endereço oficial do GitHub Pages (https://…github.io/…). Este QR aponta para ${esc(location.host || 'um arquivo local')} e não vai funcionar nos celulares.</p>` : ''}
     </div>
     <div class="etiquetas">${lista.map(e => `<div class="etq"><div class="top">${ESCUDO} BRIGADA DE EMERGÊNCIA</div>
-      ${tokenDe(e.Codigo) ? `<div class="qr" data-url="${esc(urlEquip(e.Codigo, tokenDe(e.Codigo)))}"></div>` : '<p class="aviso" style="margin:10px">Sem código: clique em Atualizar</p>'}<div class="etq-cod">${ilus(e, 30)}<b>${esc(e.Codigo)}</b></div><small>${esc(nomeTipo(e))}</small><small>${esc(e.Local)}</small>
+      ${tokenDe(e.Codigo) ? `<div class="qr" data-url="${esc(urlEquip(e.Codigo, tokenDe(e.Codigo)))}"></div>` : '<p class="aviso" style="margin:10px">Sem código: clique em Atualizar</p>'}<div class="etq-cod">${ilus(e, 30)}<b>${esc(e.Codigo)}</b></div><small>${esc(nomeTipo(e))}</small><small>${esc(ondeFica(e))}</small>
       <div class="rod"><img src="logo.png" alt="" onerror="this.hidden=true"><span>Leia para fazer o checklist</span></div>
       <a href="javascript:void 0" class="nao-imprimir" style="display:block;font-size:.75rem;padding-bottom:8px" onclick="trocarCodigo(${js(e.Codigo)})">trocar código</a></div>`).join('')}</div>`);
   gerarQRs();
