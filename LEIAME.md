@@ -67,6 +67,8 @@ SUPABASE_KEY: 'eyJ...',   // chave anon public
 ## Manutenção do dia a dia
 
 - **Novo equipamento**: no Supabase, **Table Editor › equipamentos › Insert row** (código, categoria, tipo, local). Deixe o `token` em branco: o banco cria o código sozinho. Se a localização já existir, ele já entra na dupla daquele setor. Se for nova, aparece em Setores como "sem dupla". Depois imprima a etiqueta.
+- **Alarmes (acionadores manuais)**: cadastre na tabela `equipamentos` com `categoria` = `Alarme` (ex.: código `ALM-001`). Eles usam o checklist de alarmes (Integridade, Teste funcional, Placa de sinalização, Pintura do piso, Acesso livre) e aparecem com a ilustração da botoeira.
+- **Checklists usados**: extintores e alarmes conforme a planilha "CKL extintores e alarmes"; hidrante com abrigo conforme o formulário "Checklist de verificação – Sistema de hidrantes". Os 2 acionamentos manuais de pressurização usam o checklist de alarmes.
 - **Desativar equipamento**: na mesma tabela, desmarque `ativo`.
 - **Brigadistas e duplas**: pela gestão.
 - **Mudar os itens do checklist**: edite `CHECKLISTS` no `comum.js` e envie para o GitHub.

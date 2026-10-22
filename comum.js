@@ -17,16 +17,28 @@ const CONFIG = {
 
 /* ---------------- Checklists por tipo de equipamento ---------------- */
 const CHECKLISTS = {
+  // Planilha "CKL extintores e alarmes" › aba Extintores (mesma ordem)
   'Extintor': [
-    'Lacre e pino de segurança intactos',
-    'Manômetro na faixa verde (quando houver)',
-    'Mangueira / difusor sem trincas ou obstrução',
-    'Carga dentro da validade',
-    'Teste hidrostático dentro da validade',
-    'Rótulo e etiqueta de inspeção legíveis',
-    'Corpo sem corrosão, amassado ou vazamento',
-    'Sinalização (placa e piso) visível',
-    'Acesso desobstruído e altura correta',
+    'Localização inadequada',
+    'Acesso obstruído',
+    'Sem suporte',
+    'Pressão anormal',
+    'Manômetro',
+    'Cilindro',
+    'Etiqueta',
+    'Rótulo',
+    'Alça',
+    'Gatilho',
+    'Trava',
+    'Lacre',
+    'Mangueira',
+    'Punho',
+    'Placa',
+    'Pintura do piso',
+    'Vencido',
+    'Garantia',
+    'Despressurizado',
+    'Não possui - Reinstalar',
   ],
   // Formulário "Checklist de verificação – Sistema de hidrantes" (mesma ordem do papel)
   'Hidrante com abrigo': [
@@ -49,15 +61,20 @@ const CHECKLISTS = {
     'Registro sem vazamento',
     'Acesso livre para viatura dos bombeiros',
   ],
-  'Acionamento manual': [
-    'Botoeira sinalizada e visível',
-    'Proteção / vidro intacto',
-    'Sem danos ou corrosão',
-    'Acesso desobstruído',
+  // Planilha "CKL extintores e alarmes" › aba Alarmes (mesma ordem)
+  'Alarme': [
+    'Integridade',
+    'Teste funcional',
+    'Placa de sinalização',
+    'Pintura do piso',
+    'Acesso livre',
   ],
 };
+CHECKLISTS['Acionamento manual'] = CHECKLISTS['Alarme']; // acionamento manual de pressurização usa o checklist de alarmes
 const CHECKLIST_PADRAO = ['Equipamento em bom estado', 'Sinalização visível', 'Acesso desobstruído'];
-const itensDe = eq => CHECKLISTS[eq.Categoria === 'Extintor' ? 'Extintor' : eq.Tipo] || CHECKLIST_PADRAO;
+/* Extintor e Alarme: checklist pela categoria. Hidrantes: pelo tipo (abrigo, recalque, acionamento manual). */
+const chaveChecklist = eq => ['Extintor', 'Alarme'].includes(eq.Categoria) ? eq.Categoria : eq.Tipo;
+const itensDe = eq => CHECKLISTS[chaveChecklist(eq)] || CHECKLIST_PADRAO;
 
 /* Campos extras do cabeçalho do formulário, por tipo. Vêm preenchidos com o valor do último checklist do equipamento. */
 const CAMPOS_EXTRAS = {
@@ -66,7 +83,7 @@ const CAMPOS_EXTRAS = {
     { id: 'proximoTeste', rotulo: 'Próximo teste', tipo: 'date' },
   ],
 };
-const camposExtrasDe = eq => CAMPOS_EXTRAS[eq.Categoria === 'Extintor' ? 'Extintor' : eq.Tipo] || [];
+const camposExtrasDe = eq => CAMPOS_EXTRAS[chaveChecklist(eq)] || [];
 
 /* Respostas de cada item: Conforme / Não conforme / N.A. (como no formulário em papel) */
 const RESPOSTAS = { ok: 'Conforme', nc: 'Não conforme', na: 'N.A.' };
@@ -146,11 +163,11 @@ const ILUS = {
     <rect x="21" y="47" width="22" height="3.5" rx="1.75" fill="#fff" opacity=".85"/>
   </svg>`,
 };
-const ilusTipo = eq => eq.Categoria === 'Extintor' ? 'extintor'
+const ilusTipo = eq => eq.Categoria === 'Extintor' ? 'extintor' : eq.Categoria === 'Alarme' ? 'botoeira'
   : eq.Tipo === 'Hidrante com abrigo' ? 'abrigo' : eq.Tipo === 'Acionamento manual' ? 'botoeira' : 'hidrante';
 /* Ilustração num "azulejo" arredondado; st (ok/nc/pend) colore a moldura conforme o status */
 const ilus = (eq, tam = 48, st = '') => `<span class="ilus ${st}" style="--t:${tam}px">${ILUS[ilusTipo(eq)]}</span>`;
-const ilusCat = (cat, tam = 40) => `<span class="ilus" style="--t:${tam}px">${ILUS[cat === 'Extintor' ? 'extintor' : 'hidrante']}</span>`;
+const ilusCat = (cat, tam = 40) => `<span class="ilus" style="--t:${tam}px">${ILUS[{ Extintor: 'extintor', Alarme: 'botoeira' }[cat] || 'hidrante']}</span>`;
 
 const nomeTipo = eq =>String(eq.Tipo).toLowerCase().startsWith(String(eq.Categoria).toLowerCase()) ? eq.Tipo : eq.Categoria + ' ' + eq.Tipo;
 const iconeDe = eq => ico(eq.Categoria === 'Hidrante' ? 'hidrante' : 'extintor');
