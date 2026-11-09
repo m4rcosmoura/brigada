@@ -117,6 +117,7 @@ const ICONES = {
   cadeado: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
   celular: '<rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18.5h2"/>',
   pin: '<path d="M12 21s-7-6.3-7-11.5a7 7 0 0 1 14 0C19 14.7 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
+  camera: '<path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/>',
 };
 const ico = (n, cls = '') => `<svg class="ic ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONES[n] || ''}</svg>`;
 const ESCUDO = '<img src="brigada.png" alt="">'; // logo da brigada (etiquetas)
@@ -294,7 +295,7 @@ async function gerarQRs(raiz = document) {
 // Chave nova (sb_publishable_…) vai só em "apikey"; a antiga (anon, JWT "eyJ…") também em Authorization.
 const SB_HEADERS = () => ({ apikey: CONFIG.SUPABASE_KEY, 'Content-Type': 'application/json',
   ...(CONFIG.SUPABASE_KEY.startsWith('eyJ') ? { Authorization: 'Bearer ' + CONFIG.SUPABASE_KEY } : {}) });
-const RPC = { registrar: 'registrar', pin: 'admin_pin', setorDupla: 'definir_setor_dupla', brigadista: 'salvar_brigadista', tokens: 'tokens', novoToken: 'novo_token' };
+const RPC = { registrar: 'registrar', pin: 'admin_pin', setorDupla: 'definir_setor_dupla', brigadista: 'salvar_brigadista', tokens: 'tokens', novoToken: 'novo_token', fotos: 'fotos_do_registro' };
 
 async function api(corpo) {
   const { acao, ...params } = corpo;
@@ -342,7 +343,7 @@ async function carregar() {
   }
   // registros ainda não enviados aparecem como feitos
   const ids = new Set(S.registros.map(r => r.Id));
-  lsGet(LS.fila, []).forEach(r => { if (!ids.has(r.Id)) S.registros.push(r); });
+  lsGet(LS.fila, []).forEach(({ Token, Fotos, ...r }) => { if (!ids.has(r.Id)) S.registros.push(r); });
 }
 
 /* Altera o cadastro: no Supabase (com PIN) ou, no modo demonstração, no navegador.
@@ -359,35 +360,41 @@ async function alterarCadastro(acao, corpo, pin, aplicar) {
 }
 
 /* Envia os checklists pendentes. Devolve os Ids que o banco recusou (código do QR inválido). */
+/* Envia os checklists pendentes, um por vez (com fotos cada envio fica maior).
+   Devolve os Ids que o banco recusou (código do QR inválido). */
 async function enviarFila() {
   if (DEMO) return [];
-  const fila = lsGet(LS.fila, []);
-  if (!fila.length) return [];
-  try {
-    const j = await api({ acao: 'registrar', registros: fila });
-    const rejeitados = j.rejeitados || [];
-    const fora = new Set(j.ids.concat(rejeitados));
+  const rejeitados = [];
+  for (const reg of lsGet(LS.fila, [])) {
+    let j;
+    try { j = await api({ acao: 'registrar', registros: [reg] }); }
+    catch (e) { break; /* sem internet: tenta de novo depois */ }
+    const fora = new Set((j.ids || []).concat(j.rejeitados || []));
+    rejeitados.push(...(j.rejeitados || []));
     lsSet(LS.fila, lsGet(LS.fila, []).filter(r => !fora.has(r.Id)));
-    if (rejeitados.length) {
-      S.registros = S.registros.filter(r => !rejeitados.includes(r.Id));
-      toast(`${rejeitados.length} checklist(s) recusado(s): QR Code inválido ou trocado. Leia a etiqueta de novo.`);
-    }
-    return rejeitados;
-  } catch (e) { return []; /* sem internet: tenta de novo depois */ }
+  }
+  if (rejeitados.length) {
+    S.registros = S.registros.filter(r => !rejeitados.includes(r.Id));
+    toast(`${rejeitados.length} checklist(s) recusado(s): QR Code inválido ou trocado. Leia a etiqueta de novo.`);
+  }
+  return rejeitados;
 }
 
-/* Salva um checklist. Retorna { enviado, recusado }. reg.Token = código lido no QR. */
+/* Salva um checklist. Retorna { enviado, recusado }.
+   reg.Token = código lido no QR; reg.Fotos = [{ item, imagem }] (vão para a tabela de fotos). */
 async function salvarRegistro(reg) {
+  const { Token, Fotos, ...limpo } = reg;          // o que fica na tela: sem código nem fotos
   if (DEMO) {
     const d = lsGet(LS.demo, {});
     const eq = (d.equipamentos || []).find(e => e.Codigo === reg.Codigo);
     if (!eq || eq.Token !== reg.Token) return { enviado: false, recusado: true };
-    const { Token, ...limpo } = reg;
-    d.registros = (d.registros || []).concat(limpo); lsSet(LS.demo, d);
+    d.registros = (d.registros || []).concat(limpo);
+    d.fotos = (d.fotos || []).concat((Fotos || []).map(f => ({ registro_id: reg.Id, ...f })));
+    lsSet(LS.demo, d);
     S.registros.push(limpo);
     return { enviado: true, recusado: false };
   }
-  S.registros.push(reg);
+  S.registros.push(limpo);
   lsSet(LS.fila, lsGet(LS.fila, []).concat(reg));
   const recusados = await enviarFila();
   if (recusados.includes(reg.Id)) return { enviado: false, recusado: true };

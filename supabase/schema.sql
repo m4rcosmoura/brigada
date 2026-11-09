@@ -52,6 +52,16 @@ create table if not exists registros (
 );
 create index if not exists registros_mes_idx on registros (mes);
 
+-- Fotos dos itens "Não conforme" (à parte, para o painel continuar leve)
+create table if not exists fotos (
+  id           bigserial primary key,
+  registro_id  text not null references registros(id) on delete cascade,
+  item         text not null default '',
+  imagem       text not null,                 -- data:image/jpeg;base64,... (reduzida no celular)
+  criado_em    timestamptz not null default now()
+);
+create index if not exists fotos_registro_idx on fotos (registro_id);
+
 create table if not exists config (
   chave  text primary key,
   valor  text not null
@@ -62,6 +72,7 @@ alter table setores      enable row level security;
 alter table equipamentos enable row level security;
 alter table registros    enable row level security;
 alter table config       enable row level security;
+alter table fotos        enable row level security;
 
 -- ---------- leitura pública (sem o código secreto) ----------
 create or replace view v_brigadistas as
@@ -140,6 +151,13 @@ begin
             r->>'Categoria', r->>'Tipo', r->>'Local', r->>'Setor', r->>'Dupla',
             r->>'Brigadista', r->>'Resultado', coalesce(r->>'ItensNC', ''), coalesce(r->>'Observacao', ''),
             coalesce(r->>'Detalhe', ''));
+    -- fotos: no máximo 15 por checklist, só imagens, até ~500 KB cada
+    if jsonb_typeof(r->'Fotos') = 'array' then
+      insert into fotos (registro_id, item, imagem)
+      select r->>'Id', coalesce(f->>'item', ''), f->>'imagem'
+      from jsonb_array_elements(r->'Fotos') with ordinality as t(f, n)
+      where n <= 15 and (f->>'imagem') like 'data:image/%' and length(f->>'imagem') <= 700000;
+    end if;
     aceitos := aceitos || (r->>'Id');
   end loop;
   return jsonb_build_object('ok', true, 'ids', to_jsonb(aceitos), 'rejeitados', to_jsonb(rejeitados));
@@ -204,12 +222,24 @@ begin
   return jsonb_build_object('ok', true, 'token', t);
 end $$;
 
+-- Fotos de um checklist (gestão, com PIN)
+create or replace function fotos_do_registro(pin text, registro text) returns jsonb
+language plpgsql security definer set search_path = public, extensions as $$
+begin
+  perform _exigir_pin(pin);
+  return jsonb_build_object('ok', true, 'fotos', coalesce((
+    select jsonb_agg(jsonb_build_object('item', item, 'imagem', imagem) order by id)
+    from fotos where registro_id = fotos_do_registro.registro), '[]'::jsonb));
+end $$;
+
 -- quem pode chamar o quê
 revoke all on function _pin_ok(text), _exigir_pin(text), definir_pin(text) from public, anon, authenticated;
 revoke all on function registrar(jsonb), admin_pin(text), definir_setor_dupla(text, text[], text),
-  salvar_brigadista(text, text, text, text, text), tokens(text), novo_token(text, text) from public;
+  salvar_brigadista(text, text, text, text, text), tokens(text), novo_token(text, text),
+  fotos_do_registro(text, text) from public;
 
 -- Por último, defina o PIN da coordenação (troque 'SEU-PIN'):
 --   select definir_pin('SEU-PIN');
 grant execute on function registrar(jsonb), admin_pin(text), definir_setor_dupla(text, text[], text),
-  salvar_brigadista(text, text, text, text, text), tokens(text), novo_token(text, text) to anon, authenticated;
+  salvar_brigadista(text, text, text, text, text), tokens(text), novo_token(text, text),
+  fotos_do_registro(text, text) to anon, authenticated;

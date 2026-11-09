@@ -67,6 +67,7 @@ SUPABASE_KEY: 'eyJ...',   // chave anon public
 ## Manutenção do dia a dia
 
 - **Novo equipamento**: no Supabase, **Table Editor › equipamentos › Insert row** (código, categoria, tipo, local). Deixe o `token` em branco: o banco cria o código sozinho. Se a localização já existir, ele já entra na dupla daquele setor. Se for nova, aparece em Setores como "sem dupla". Depois imprima a etiqueta.
+- **Fotos**: no celular, item marcado como "Não conforme" ganha o botão **Tirar foto** (até 3 por item, reduzidas para ~100 KB). Ficam na tabela `fotos` do Supabase e aparecem na gestão › Histórico ao abrir o checklist. **Atualização do banco**: rode `supabase/atualizacao-fotos.sql` uma vez no SQL Editor.
 - **Alarmes**: os 62 pontos do sistema de alarme (centrais 01 e 02 e botoeiras) foram carregados pelo `supabase/alarmes.sql`, com códigos `ALM-C1-xx` e `ALM-C2-xx`, setor = Localização da planilha e o campo `descricao` com a descrição do local. Para um alarme novo, cadastre em `equipamentos` com `categoria` = `Alarme`.
 - **Checklists usados**: extintores e alarmes conforme a planilha "CKL extintores e alarmes"; hidrante com abrigo conforme o formulário "Checklist de verificação – Sistema de hidrantes". Os 2 acionamentos manuais de pressurização usam o checklist de alarmes.
 - **Desativar equipamento**: na mesma tabela, desmarque `ativo`.

@@ -55,6 +55,14 @@
   .detalhe-itens { margin: 6px 0 0; padding-left: 18px; font-size: .85rem; }
   .detalhe-itens .nc { color: var(--red); font-weight: 600; }
   .detalhe-itens .na { color: var(--muted); }
+  .detalhe-itens .tag .ic { width: 12px; height: 12px; }
+  .fotos-det { display: flex; flex-wrap: wrap; gap: 10px; margin: 8px 0; }
+  .fotos-det figure { margin: 0; width: 120px; cursor: zoom-in; }
+  .fotos-det img { width: 120px; height: 90px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); display: block; }
+  .fotos-det figcaption { font-size: .72rem; color: var(--muted); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .foto-grande { position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,.85); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: zoom-out; padding: 20px; }
+  .foto-grande img { max-width: 100%; max-height: 85vh; border-radius: 8px; }
+  .foto-grande p { color: #fff; margin-top: 10px; }
   .abas { display: flex; gap: 6px; margin-bottom: 14px; }
   .abas a { padding: 9px 16px; border-radius: 10px; background: #fff; border: 1px solid var(--line); color: var(--txt); text-decoration: none; font-weight: 600; }
   .abas a.ativo { background: var(--ink); color: #fff; border-color: var(--ink); }
@@ -447,8 +455,30 @@ function verItens(tr, i) {
     .map(c => `${esc(c.rotulo)}: <b>${esc(new Date(det.extras[c.id] + 'T12:00').toLocaleDateString('pt-BR'))}</b>`).join(' · ');
   tr.insertAdjacentHTML('afterend', `<tr class="det"><td></td><td colspan="6">
     ${extras ? `<div style="margin-bottom:6px">${extras}</div>` : ''}
-    <ul class="detalhe-itens">${itens.map(([t, v]) => `<li class="${v}">${marca[v] || '?'} ${esc(t)} <span class="muted">— ${esc(RESPOSTAS[v] || v)}${obsItens[t] ? ': ' + esc(obsItens[t]) : ''}</span></li>`).join('') || '<li>Sem detalhe</li>'}</ul>
+    ${Object.keys(det.fotos || {}).length ? `<div class="fotos-det" id="fd-${esc(histLista[i].Id)}"><span class="muted">Carregando fotos…</span></div>` : ''}
+    <ul class="detalhe-itens">${itens.map(([t, v]) => `<li class="${v}">${marca[v] || '?'} ${esc(t)} <span class="muted">— ${esc(RESPOSTAS[v] || v)}${obsItens[t] ? ': ' + esc(obsItens[t]) : ''}</span>${(det.fotos || {})[t] ? ` <span class="tag nc">${ico('camera')} ${det.fotos[t]}</span>` : ''}</li>`).join('') || '<li>Sem detalhe</li>'}</ul>
     <small class="muted">Origem: ${esc(det.origem || '—')}</small></td></tr>`);
+  if (Object.keys(det.fotos || {}).length) carregarFotos(histLista[i].Id);
+}
+
+/* Fotos de um checklist: baixadas só quando o checklist é aberto */
+async function carregarFotos(id) {
+  const caixa = document.getElementById('fd-' + id);
+  try {
+    const lista = DEMO ? (lsGet(LS.demo, {}).fotos || []).filter(f => f.registro_id === id)
+      : (await api({ acao: 'fotos', pin: pinGestao(), registro: id })).fotos;
+    window._fotos = lista;
+    caixa.innerHTML = lista.length ? lista.map((f, n) => `<figure onclick="ampliarFoto(${n})"><img src="${f.imagem}" alt="Foto"><figcaption>${esc(f.item)}</figcaption></figure>`).join('')
+      : '<span class="muted">Fotos não encontradas.</span>';
+  } catch (e) { caixa.innerHTML = `<span class="muted">Não foi possível carregar as fotos: ${esc(e.message)}</span>`; }
+}
+function ampliarFoto(n) {
+  const f = window._fotos[n];
+  const fundo = document.createElement('div');
+  fundo.className = 'foto-grande';
+  fundo.innerHTML = `<img src="${f.imagem}" alt="Foto"><p>${esc(f.item)} · clique para fechar</p>`;
+  fundo.onclick = () => fundo.remove();
+  document.body.appendChild(fundo);
 }
 
 /* ---------- Etiquetas QR ---------- */

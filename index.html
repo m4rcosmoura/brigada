@@ -90,6 +90,14 @@
   .item.nc .opc .b-nc { background: var(--red); border-color: var(--red); color: #fff; }
   .item.na .opc .b-na { background: #6b7280; border-color: #6b7280; color: #fff; }
   .item .obs-item { margin-top: 8px; min-height: 42px; padding: 9px 12px; font-size: .9rem; }
+  .foto-area { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .fotos { display: contents; }
+  .mini { position: relative; width: 64px; height: 64px; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); flex: none; }
+  .mini img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .mini button { position: absolute; top: 2px; right: 2px; width: 24px; height: 24px; border-radius: 50%; border: 0; background: rgba(0,0,0,.6); color: #fff; display: flex; align-items: center; justify-content: center; padding: 0; cursor: pointer; }
+  .mini button .ic { width: 14px; height: 14px; }
+  .btn-foto { height: 64px; padding: 0 16px; border-radius: 10px; border: 1.5px dashed var(--red); color: var(--red); background: #fff; display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: .92rem; cursor: pointer; white-space: nowrap; }
+  .btn-foto .ic { width: 22px; height: 22px; }
   .extras { display: grid; grid-template-columns: 1fr; gap: 8px; }
   .extras > div { display: flex; align-items: center; gap: 10px; }
   .extras > div label { flex: 1; margin: 0; }
@@ -294,7 +302,7 @@ function telaChecklist(cod) {
   const u = usuario();
   const st = statusEq(eq.Codigo, mesAtual());
   const itens = itensDe(eq), extras = camposExtrasDe(eq);
-  respostas = {};
+  respostas = {}; fotos = {};
   const outraDupla = duplaDe(eq) && minhaDupla() && duplaDe(eq) !== minhaDupla();
   if (!leituraValida(eq.Codigo)) return telaPrecisaLer(eq, st);
   // valores do cabeçalho (ex.: aquisição da mangueira) do checklist mais recente deste equipamento
@@ -311,7 +319,9 @@ function telaChecklist(cod) {
     <div id="itens">
       ${itens.map((t, i) => `<div class="item" id="it${i}"><p><span class="n">${String(i + 1).padStart(2, '0')}</span>${esc(t)}</p>
         <div class="opc"><button class="b-ok" onclick="resp(${i},'ok')">Conforme</button><button class="b-nc" onclick="resp(${i},'nc')">Não conforme</button><button class="b-na" onclick="resp(${i},'na')">N.A.</button></div>
-        <input class="obs-item" id="obs${i}" placeholder="Observação deste item" hidden></div>`).join('')}
+        <input class="obs-item" id="obs${i}" placeholder="Observação deste item" hidden>
+        <div class="foto-area" id="fa${i}" hidden><div class="fotos" id="fotos${i}"></div>
+          <label class="btn-foto" id="bf${i}">${ico('camera')}<span>Tirar foto</span><input type="file" accept="image/*" capture="environment" hidden onchange="addFoto(${i}, this)"></label></div></div>`).join('')}
     </div>
     <div class="card">
       <label class="campo" for="obs" style="margin-top:0">Observações / ações necessárias</label>
@@ -358,7 +368,42 @@ function resp(i, v) {
   const campo = document.getElementById('obs' + i);
   campo.hidden = v === 'ok';                       // como a coluna "N.A. / Observação" do papel
   campo.placeholder = v === 'nc' ? 'O que está errado? (obrigatório)' : 'Observação (opcional)';
+  document.getElementById('fa' + i).hidden = v !== 'nc'; // foto só no "Não conforme"
   if (v === 'nc') campo.focus();
+}
+
+/* ---------- Fotos dos itens "Não conforme" ---------- */
+const MAX_FOTOS_ITEM = 3;
+let fotos = {};   // índice do item → [dataURL, ...]
+async function addFoto(i, input) {
+  const arquivo = input.files && input.files[0];
+  input.value = '';
+  if (!arquivo) return;
+  if ((fotos[i] || []).length >= MAX_FOTOS_ITEM) return toast(`No máximo ${MAX_FOTOS_ITEM} fotos por item`);
+  try {
+    (fotos[i] = fotos[i] || []).push(await reduzirFoto(arquivo));
+    desenharFotos(i);
+  } catch (e) { toast('Não foi possível usar esta foto'); }
+}
+function tirarFoto(i, n) { fotos[i].splice(n, 1); desenharFotos(i); }
+function desenharFotos(i) {
+  const lista = fotos[i] || [];
+  document.getElementById('fotos' + i).innerHTML = lista.map((src, n) =>
+    `<span class="mini"><img src="${src}" alt="Foto ${n + 1}"><button type="button" aria-label="Apagar foto" onclick="tirarFoto(${i},${n})">${ico('x')}</button></span>`).join('');
+  document.getElementById('bf' + i).hidden = lista.length >= MAX_FOTOS_ITEM;
+  document.getElementById('bf' + i).querySelector('span').textContent = lista.length ? 'Outra foto' : 'Tirar foto';
+}
+/* Reduz a foto no celular (lado maior 1024 px, JPEG) para enviar rápido: ~100 KB */
+async function reduzirFoto(arquivo, max = 1024, qualidade = 0.6) {
+  const url = URL.createObjectURL(arquivo);
+  try {
+    const img = await new Promise((ok, erro) => { const im = new Image(); im.onload = () => ok(im); im.onerror = erro; im.src = url; });
+    const k = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+    const c = document.createElement('canvas');
+    c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    return c.toDataURL('image/jpeg', qualidade);
+  } finally { URL.revokeObjectURL(url); }
 }
 function marcarTodos() {
   document.querySelectorAll('#itens .item').forEach((_, i) => resp(i, 'ok'));
@@ -376,6 +421,7 @@ async function salvarChecklist(cod) {
   const extras = Object.fromEntries(camposExtrasDe(eq).map(c => [c.id, document.getElementById('ex-' + c.id).value]).filter(x => x[1]));
   if (!leituraValida(eq.Codigo)) { toast('A leitura do QR expirou. Leia a etiqueta de novo.'); return ir('ler'); }
   const btn = document.getElementById('btn-salvar'); btn.disabled = true; btn.textContent = 'Salvando…';
+  const fotosNC = itens.flatMap((t, i) => respostas[i] === 'nc' ? (fotos[i] || []).map(imagem => ({ item: t, imagem })) : []);
   const agora = new Date();
   const reg = {
     Id: agora.getTime().toString(36) + Math.random().toString(36).slice(2, 7),
@@ -383,8 +429,10 @@ async function salvarChecklist(cod) {
     Codigo: eq.Codigo, Categoria: eq.Categoria, Tipo: eq.Tipo, Local: eq.Local, Dupla: duplaDe(eq), Setor: setorDe(eq),
     Brigadista: u.Nome, Resultado: nc.length ? 'NC' : 'OK', ItensNC: nc.join('; '), Observacao: obs,
     Detalhe: JSON.stringify({ itens: Object.fromEntries(itens.map((t, i) => [t, respostas[i]])), obsItens, extras,
+      fotos: Object.fromEntries(fotosNC.reduce((m, f) => m.set(f.item, (m.get(f.item) || 0) + 1), new Map())),
       origem: 'QR', lidoEm: new Date(leitura.em).toISOString(), duplaBrigadista: minhaDupla() }),
     Token: leitura.token, // o banco confere com o código da etiqueta; não é gravado
+    Fotos: fotosNC,       // vão para a tabela de fotos
   };
   leitura = null; // cada leitura vale para um checklist
   const { enviado, recusado } = await salvarRegistro(reg);
@@ -402,6 +450,7 @@ async function salvarChecklist(cod) {
       <h2>${nc.length ? 'Salvo com não conformidade' : 'Checklist salvo!'}</h2>
       <p style="margin:0"><b>${esc(eq.Codigo)}</b> · ${esc(ondeFica(eq))}</p>
       ${nc.length ? `<p class="muted">Não conformidades: ${esc(nc.join('; '))}</p>` : ''}
+      ${fotosNC.length ? `<p class="muted" style="margin:0">${ico('camera')} ${fotosNC.length} foto(s) anexada(s)</p>` : ''}
       ${!enviado ? '<p class="aviso">Sem internet: ficou salvo no celular e será enviado automaticamente.</p>' : ''}
     </div>
     <button class="btn btn-scan" onclick="ir('ler')">${ico('scan')}<span><b>Próximo equipamento</b><small>Ler outro QR Code</small></span></button>
