@@ -303,7 +303,8 @@ function telaDuplas() {
   const mes = mesAtual();
   const semDupla = S.brigadistas.filter(b => ativo(b) && !b.Dupla);
   const ativos = S.brigadistas.filter(ativo).sort((a, b) => a.Nome.localeCompare(b.Nome));
-  const abas = `<div class="abas"><a href="#/duplas" class="${abaDuplas === 'duplas' ? 'ativo' : ''}" onclick="abaDuplas='duplas'">Duplas</a><a href="#/duplas" class="${abaDuplas === 'brig' ? 'ativo' : ''}" onclick="abaDuplas='brig'">Brigadistas (${S.brigadistas.length})</a></div>`;
+  // as abas redesenham a tela direto (o endereço é o mesmo, então não há troca de página)
+  const abas = `<div class="abas"><a href="#/duplas" class="${abaDuplas === 'duplas' ? 'ativo' : ''}" onclick="abaDuplas='duplas';telaDuplas();return false">Duplas (${duplas().length})</a><a href="#/duplas" class="${abaDuplas === 'brig' ? 'ativo' : ''}" onclick="abaDuplas='brig';telaDuplas();return false">Brigadistas (${S.brigadistas.filter(ativo).length})</a></div>`;
   if (abaDuplas === 'brig') return telaBrigadistas(abas);
   render(`
     <div class="titulo-pag"><h2>Duplas e brigadistas</h2><div class="muted">Monte as duplas e defina quais setores cada uma cuida. Clique no ✕ para tirar, use as listas para adicionar.</div></div>
@@ -352,7 +353,7 @@ async function criarDupla() {
 function telaBrigadistas(abas) {
   const lista = S.brigadistas.slice().sort((a, b) => (ativo(b) - ativo(a)) || a.Nome.localeCompare(b.Nome));
   render(`
-    <div class="titulo-pag"><h2>Duplas e brigadistas</h2><div class="muted">Cadastro dos brigadistas. Desativar tira a pessoa da lista do app sem apagar o histórico.</div></div>
+    <div class="titulo-pag"><h2>Duplas e brigadistas</h2><div class="muted">Cadastro dos brigadistas: <b>${S.brigadistas.filter(ativo).length} ativos</b>${S.brigadistas.some(b => !ativo(b)) ? ` e ${S.brigadistas.filter(b => !ativo(b)).length} desativados (no fim da lista, em cinza)` : ''}. Desativar tira a pessoa da lista do app sem apagar o histórico.</div></div>
     ${abas}
     <div class="card">
       <h3>Novo brigadista</h3>
@@ -562,6 +563,8 @@ function telaConfig() {
 document.getElementById('btn-sync').innerHTML = ico('sync');
 document.getElementById('btn-sair').innerHTML = ico('sair') + ' Sair';
 window.addEventListener('hashchange', rota);
+// link para a página em que já estamos (ex.: "mostrar" sem dupla em Setores): o endereço não muda, então redesenha aqui
+document.addEventListener('click', e => { const a = e.target.closest('a[href^="#/"]'); if (a && !e.defaultPrevented && a.getAttribute('href') === location.hash) setTimeout(rota); });
 (async () => {
   await carregar();
   atualizarBanner();
