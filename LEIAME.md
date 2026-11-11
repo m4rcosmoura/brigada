@@ -22,6 +22,7 @@ São duas versões que usam o mesmo banco de dados (Supabase):
 |---|---|---|
 | `index.html` | sim | App da brigada (celular) |
 | `gestao.html` | sim | Gestão (PC) |
+| `laudo.js` | sim | Gerador do laudo de inspeção em PDF (gestão › Histórico) |
 | `comum.js` | sim | Código comum. **Aqui ficam a configuração do Supabase e os itens dos checklists** |
 | `estilo.css` | sim | Visual |
 | `brigada.png` | sim | Logo da Brigada de Emergência: topo, ícone do app, login da gestão e etiquetas |
@@ -68,6 +69,7 @@ SUPABASE_KEY: 'eyJ...',   // chave anon public
 
 - **Novo equipamento**: no Supabase, **Table Editor › equipamentos › Insert row** (código, categoria, tipo, local). Deixe o `token` em branco: o banco cria o código sozinho. Se a localização já existir, ele já entra na dupla daquele setor. Se for nova, aparece em Setores como "sem dupla". Depois imprima a etiqueta.
 - **Fotos**: no celular, item marcado como "Não conforme" ganha o botão **Tirar foto** (até 3 por item, reduzidas para ~100 KB). Ficam na tabela `fotos` do Supabase e aparecem na gestão › Histórico ao abrir o checklist. **Atualização do banco**: rode `supabase/atualizacao-fotos.sql` uma vez no SQL Editor.
+- **Laudo em PDF**: na gestão › Histórico, abra um checklist e clique **Gerar laudo (PDF)**. Abre um laudo A4 (identificação, dados da inspeção com comprovação da leitura do QR, resultado e índice de conformidade, checklist item a item, fotos, histórico de 12 meses com linha do tempo, recorrência de não conformidades, análise e conclusão automáticas, normas e assinaturas). Na janela de impressão, escolha **Salvar como PDF**.
 - **Alarmes**: os 62 pontos do sistema de alarme (centrais 01 e 02 e botoeiras) foram carregados pelo `supabase/alarmes.sql`, com códigos `ALM-C1-xx` e `ALM-C2-xx`, setor = Localização da planilha e o campo `descricao` com a descrição do local. Para um alarme novo, cadastre em `equipamentos` com `categoria` = `Alarme`.
 - **Checklists usados**: extintores e alarmes conforme a planilha "CKL extintores e alarmes"; hidrante com abrigo conforme o formulário "Checklist de verificação – Sistema de hidrantes". Os 2 acionamentos manuais de pressurização usam o checklist de alarmes.
 - **Desativar equipamento**: na mesma tabela, desmarque `ativo`.

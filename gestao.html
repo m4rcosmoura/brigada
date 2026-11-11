@@ -94,6 +94,7 @@
 
 <script src="dados-iniciais.js"></script>
 <script src="comum.js"></script>
+<script src="laudo.js"></script>
 <script>
 /* =================== GESTÃO (PC) =================== */
 const ROTAS = { '': telaPainel, 'setores': telaSetores, 'duplas': telaDuplas, 'equipamentos': telaEquipamentos, 'historico': telaHistorico, 'etiquetas': telaEtiquetas, 'config': telaConfig };
@@ -459,7 +460,8 @@ function verItens(tr, i) {
     ${extras ? `<div style="margin-bottom:6px">${extras}</div>` : ''}
     ${Object.keys(det.fotos || {}).length ? `<div class="fotos-det" id="fd-${esc(histLista[i].Id)}"><span class="muted">Carregando fotos…</span></div>` : ''}
     <ul class="detalhe-itens">${itens.map(([t, v]) => `<li class="${v}">${marca[v] || '?'} ${esc(t)} <span class="muted">— ${esc(RESPOSTAS[v] || v)}${obsItens[t] ? ': ' + esc(obsItens[t]) : ''}</span>${(det.fotos || {})[t] ? ` <span class="tag nc">${ico('camera')} ${det.fotos[t]}</span>` : ''}</li>`).join('') || '<li>Sem detalhe</li>'}</ul>
-    <small class="muted">Origem: ${esc(det.origem || '—')}</small></td></tr>`);
+    <div class="linha" style="margin-top:8px"><button class="btn peq" onclick="event.stopPropagation();gerarLaudo(histLista[${i}])">${ico('imprimir')} Gerar laudo (PDF)</button>
+    <small class="muted">Origem: ${esc(det.origem || '—')}</small></div></td></tr>`);
   if (Object.keys(det.fotos || {}).length) carregarFotos(histLista[i].Id);
 }
 
