@@ -71,10 +71,10 @@ SUPABASE_KEY: 'eyJ...',   // chave anon public
 - **Fotos**: no celular, item marcado como "Não conforme" ganha o botão **Tirar foto** (até 3 por item, reduzidas para ~100 KB). Ficam na tabela `fotos` do Supabase e aparecem na gestão › Histórico ao abrir o checklist. **Atualização do banco**: rode `supabase/atualizacao-fotos.sql` uma vez no SQL Editor.
 - **Laudo em PDF**: na gestão › Histórico, abra um checklist e clique **Gerar laudo (PDF)**. Abre um laudo A4 (identificação, dados da inspeção com comprovação da leitura do QR, resultado e índice de conformidade, checklist item a item, fotos, histórico de 12 meses com linha do tempo, recorrência de não conformidades, análise e conclusão automáticas, normas e assinaturas). Na janela de impressão, escolha **Salvar como PDF**.
 - **Alarmes**: os 62 pontos do sistema de alarme (centrais 01 e 02 e botoeiras) foram carregados pelo `supabase/alarmes.sql`, com códigos `ALM-C1-xx` e `ALM-C2-xx`, setor = Localização da planilha e o campo `descricao` com a descrição do local. Para um alarme novo, cadastre em `equipamentos` com `categoria` = `Alarme`.
-- **Checklists usados**: extintores e alarmes conforme a planilha "CKL extintores e alarmes"; hidrante com abrigo conforme o formulário "Checklist de verificação – Sistema de hidrantes". Os 2 acionamentos manuais de pressurização usam o checklist de alarmes.
+- **Checklists usados**: extintores e alarmes conforme a planilha "CKL extintores e alarmes"; hidrante com abrigo conforme o formulário "Checklist de verificação – Sistema de hidrantes". Os 2 acionamentos manuais de pressurização usam o checklist de alarmes. Cada item diz como o equipamento **deve estar** (ex.: "Localização adequada", "Sem vazamento"), para que **Conforme** = ok. A planilha e o papel listavam defeitos ("Localização inadequada", "Vazamento"); no app esses nomes foram invertidos.
 - **Desativar equipamento**: na mesma tabela, desmarque `ativo`.
 - **Brigadistas e duplas**: pela gestão.
-- **Mudar os itens do checklist**: edite `CHECKLISTS` no `comum.js` e envie para o GitHub.
+- **Mudar os itens do checklist**: edite `CHECKLISTS` no `comum.js` e envie para o GitHub. Escreva o item como o equipamento deve estar. Se **renomear** um item, os checklists já gravados continuam com o nome antigo: troque-os no banco com um script como `supabase/atualizacao-nomes-itens.sql`.
 - **Trocar o PIN**: no SQL Editor, `select definir_pin('NOVO-PIN');`
 - **Relatórios**: na gestão, Painel e Histórico exportam CSV. No Supabase, a tabela `registros` tem tudo.
 

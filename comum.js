@@ -15,14 +15,17 @@ const CONFIG = {
   PIN_DEMO: '1234', // PIN da gestão no modo demonstração (com Supabase, vale o PIN definido no banco)
 };
 
-/* ---------------- Checklists por tipo de equipamento ---------------- */
+/* ---------------- Checklists por tipo de equipamento ----------------
+   Cada item diz como o equipamento DEVE estar: "Conforme" = está assim; "Não conforme" = tem problema.
+   A planilha e o formulário em papel listavam defeitos ("Localização inadequada", "Vazamento"); aqui ficam invertidos.
+   Renomeou um item? Os checklists já gravados guardam o nome antigo: veja supabase/atualizacao-nomes-itens.sql. */
 const CHECKLISTS = {
   // Planilha "CKL extintores e alarmes" › aba Extintores (mesma ordem)
   'Extintor': [
-    'Localização inadequada',
-    'Acesso obstruído',
-    'Sem suporte',
-    'Pressão anormal',
+    'Localização adequada',
+    'Acesso livre',
+    'Com suporte',
+    'Pressão normal',
     'Manômetro',
     'Cilindro',
     'Etiqueta',
@@ -35,17 +38,17 @@ const CHECKLISTS = {
     'Punho',
     'Placa',
     'Pintura do piso',
-    'Vencido',
+    'Dentro da validade',
     'Garantia',
-    'Despressurizado',
-    'Não possui - Reinstalar',
+    'Pressurizado',
+    'Extintor no local',
   ],
   // Formulário "Checklist de verificação – Sistema de hidrantes" (mesma ordem do papel)
   'Hidrante com abrigo': [
-    'Acesso obstruído',
+    'Acesso livre',
     'Demarcação no piso',
     'Identificação',
-    'Vazamento',
+    'Sem vazamento',
     'Esguicho',
     'Chave Storz - 2 UND',
     'Mangueiras - 2 UND',
