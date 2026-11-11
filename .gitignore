@@ -12,3 +12,6 @@ da8593ce7324ee06451499a89cc5fd74.jpg
 
 # Formulários digitalizados usados como referência
 *.pdf
+
+# Planilhas exportadas (têm nomes de pessoas)
+*.xlsx
