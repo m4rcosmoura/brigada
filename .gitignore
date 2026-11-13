@@ -17,3 +17,7 @@ da8593ce7324ee06451499a89cc5fd74.jpg
 # Planilhas exportadas (têm nomes de pessoas)
 *.xlsx
 supabase/redistribuicao-*.sql
+
+# Scripts de uso único e material de treinamento (não fazem parte do app)
+supabase/limpeza-*.sql
+Treinamento-*.html
